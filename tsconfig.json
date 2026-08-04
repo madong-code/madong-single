@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@vben/tsconfig/web-app.json",
+  "compilerOptions": {
+    "paths": {
+      "#/*": ["./src/*"]
+    }
+  },
+  "references": [{ "path": "./tsconfig.node.json" }],
+  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["src/**/__tests__/**", "src/**/*.spec.ts", "src/**/*.test.ts"]
+}
