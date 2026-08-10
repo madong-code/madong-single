@@ -8,6 +8,7 @@ export const {
   getInitialCustomPreferences,
   getPreferencesExtension,
   updatePreferences,
+  setPreferences,
   updateCustomPreferences,
   resetPreferences,
   clearCache,

@@ -3,8 +3,6 @@ import type { MenuItemProps, MenuItemRegistered } from '../types';
 
 import { computed, onBeforeUnmount, onMounted, reactive, useSlots } from 'vue';
 
-import qs from 'qs';
-
 import { useNamespace } from '#/core/composables';
 import { isHttpUrl } from '#/core/shared/utils';
 import { VbenIcon, VbenTooltip } from '#/core/ui/primitives';
@@ -90,10 +88,7 @@ onBeforeUnmount(() => {
   <router-link
     v-slot="{ href }"
     custom
-    :to="
-      (item.parentPaths.at(-1) ?? '') +
-      (item?.query ? `?${qs.stringify(item?.query)}` : '')
-    "
+    :to="{ path: item.parentPaths.at(-1) ?? '', query: item.query }"
   >
     <a
       :href="isHttp ? item.parentPaths.at(-1) : href"

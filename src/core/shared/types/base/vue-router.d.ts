@@ -118,6 +118,14 @@ interface RouteMeta {
    */
   order?: number;
   /**
+   * 插件模块标识，用于解析插件页面组件
+   */
+  module?: string;
+  /**
+   * 后端字符串组件最终解析到的页面路径
+   */
+  _resolvedPath?: string;
+  /**
    * 菜单所携带的参数
    */
   query?: Recordable;
@@ -145,7 +153,7 @@ interface GenerateMenuAndRoutesOptions {
   pageMap?: ComponentRecordType;
   roles?: string[];
   router: Router;
-  routes: RouteRecordRaw[];
+  routes: Array<RouteRecordRaw | RouteRecordStringComponent>;
 }
 
 export type {

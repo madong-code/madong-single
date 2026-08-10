@@ -1,78 +1,50 @@
 <script lang="ts" setup>
-import type { NotificationItem } from '#/core/layouts';
-
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+
+import { Bell, FileText, TerminalSquare } from 'lucide-vue-next';
 
 import { useWatermark } from '#/core/composables';
 import { BookOpenText, CircleHelp, SvgGithubIcon } from '#/core/design/icons';
-import {
-  BasicLayout,
-  LockScreen,
-  Notification,
-  UserDropdown,
-} from '#/core/layouts';
+import { BasicLayout, LockScreen, UserDropdown } from '#/core/layouts';
 import { preferences, usePreferences } from '#/core/preferences';
 import { openWindow } from '#/core/shared';
 import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '#/core/shared/constants';
 import { useAccessStore, useUserStore } from '#/core/stores';
 import { AuthenticationLoginExpiredModal } from '#/core/ui/common';
 import { $t } from '#/locales';
-import { useAuthStore } from '#/store';
+import { useAuthStore, useNotifyStore, useTerminalStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
+import MessageDrawer from '#/views/content/message/notify/components/message-drawer.vue';
+import NotepadDrawer from '#/views/content/notepad/components/notepad-drawer.vue';
+import TerminalDialog from '#/views/devtools/terminal/index.vue';
 
-const notifications = ref<NotificationItem[]>([
-  {
-    id: 1,
-    avatar: 'https://avatar.vercel.sh/vercel.svg?text=VB',
-    date: '3小时前',
-    isRead: true,
-    message: '描述信息描述信息描述信息',
-    title: '收到了 14 份新周报',
-  },
-  {
-    id: 2,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '刚刚',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '朱偏右 回复了你',
-  },
-  {
-    id: 3,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '2024-01-01',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '曲丽丽 评论了你',
-  },
-  {
-    id: 4,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '代办提醒',
-  },
-  {
-    id: 5,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转Workspace示例',
-    link: '/workspace',
-  },
-  {
-    id: 6,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转外部链接示例',
-    link: 'https://doc.vben.pro',
-  },
-]);
+const notifyStore = useNotifyStore();
+const terminalStore = useTerminalStore();
+const messageDrawerRef = ref<InstanceType<typeof MessageDrawer> | null>(null);
+const notepadDrawerRef = ref<InstanceType<typeof NotepadDrawer> | null>(null);
+
+function openMessageDrawer() {
+  messageDrawerRef.value?.open();
+}
+
+function openNotepadDrawer() {
+  notepadDrawerRef.value?.open();
+}
+
+function openTerminalDialog() {
+  terminalStore.toggle(true);
+}
+
+/** 是否显示终端按钮：超级管理员 */
+const showTerminalButton = computed(() => {
+  const info = userStore.userInfo as null | Record<string, any>;
+  return info?.is_super === 1;
+});
+
+onMounted(() => {
+  notifyStore.initPush();
+});
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -80,9 +52,6 @@ const authStore = useAuthStore();
 const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
 const { isDark } = usePreferences();
-const showDot = computed(() =>
-  notifications.value.some((item) => !item.isRead),
-);
 
 const menus = computed(() => [
   {
@@ -127,52 +96,6 @@ const avatar = computed(() => {
 
 async function handleLogout() {
   await authStore.logout(false);
-}
-
-function handleNoticeClear() {
-  notifications.value = [];
-}
-
-function markRead(id: number | string) {
-  const item = notifications.value.find((item) => item.id === id);
-  if (item) {
-    item.isRead = true;
-  }
-}
-
-function remove(id: number | string) {
-  notifications.value = notifications.value.filter((item) => item.id !== id);
-}
-
-function handleMakeAll() {
-  notifications.value.forEach((item) => (item.isRead = true));
-}
-
-const viewAll = () => {};
-
-const handleClick = (item: NotificationItem) => {
-  // 如果通知项有链接，点击时跳转
-  if (item.link) {
-    navigateTo(item.link, item.query, item.state);
-  }
-};
-
-function navigateTo(
-  link: string,
-  query?: Record<string, any>,
-  state?: Record<string, any>,
-) {
-  if (link.startsWith('http://') || link.startsWith('https://')) {
-    // 外部链接，在新标签页打开
-    window.open(link, '_blank');
-  } else {
-    // 内部路由链接，支持 query 参数和 state
-    router.push({
-      path: link,
-      query: query || {},
-      state,
-    });
-  }
 }
 
 watch(
@@ -222,23 +145,55 @@ watch(
         :avatar
         :menus
         :text="userStore.userInfo?.realName"
-        description="ann.vben@gmail.com"
-        tag-text="Pro"
+        :description="
+          userStore.userInfo?.email || userStore.userInfo?.username || ''
+        "
+        :tag-text="userStore.userInfo?.username || ''"
         @logout="handleLogout"
-        @clear-preferences-and-logout="handleLogout"
       />
     </template>
     <template #notification>
-      <Notification
-        :dot="showDot"
-        :notifications="notifications"
-        @clear="handleNoticeClear"
-        @read="(item) => item.id && markRead(item.id)"
-        @remove="(item) => item.id && remove(item.id)"
-        @make-all="handleMakeAll"
-        @on-click="handleClick"
-        @view-all="viewAll"
-      />
+      <div
+        class="relative flex size-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-accent hover:shadow-md mr-1"
+        @click="openMessageDrawer"
+      >
+        <Bell class="size-[18px] text-foreground" />
+        <span
+          v-if="notifyStore.unreadCount.total > 0"
+          class="absolute right-0 top-0 flex size-[16px] items-center justify-center rounded-full bg-red-500 text-[10px] text-white"
+        >
+          {{
+            notifyStore.unreadCount.total > 99
+              ? '99+'
+              : notifyStore.unreadCount.total
+          }}
+        </span>
+      </div>
+      <MessageDrawer ref="messageDrawerRef" />
+    </template>
+    <!-- 命令终端按钮（仅超级管理员显示，排在记事本之后、暗黑开关之前） -->
+    <template #header-right-118>
+      <div
+        v-if="showTerminalButton"
+        class="hidden size-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-accent hover:shadow-md md:flex mr-1"
+        title="命令终端"
+        @click="openTerminalDialog"
+      >
+        <TerminalSquare class="size-[18px] text-foreground" />
+      </div>
+      <TerminalDialog />
+    </template>
+
+    <!-- 记事本按钮（排在设置之后、终端之前，移动端隐藏） -->
+    <template #header-right-115>
+      <div
+        class="hidden size-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-accent hover:shadow-md md:flex mr-1"
+        title="记事本"
+        @click="openNotepadDrawer"
+      >
+        <FileText class="size-[18px] text-foreground" />
+      </div>
+      <NotepadDrawer ref="notepadDrawerRef" />
     </template>
     <template #extra>
       <AuthenticationLoginExpiredModal

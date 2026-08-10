@@ -110,7 +110,7 @@ function createCssOptions(injectGlobalScss = true): CSSOptions {
                 relativePath.startsWith(sourcePrefix) &&
                 !relativePath.startsWith(corePrefix)
               ) {
-                return `@use "#/core/base/styles/global/index.scss" as *;\n${content}`;
+                return `@use "#/core/design/styles/global/index.scss" as *;\n${content}`;
               }
               return content;
             },

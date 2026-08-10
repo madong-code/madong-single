@@ -1,49 +1,49 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ElMessage } from 'element-plus';
 
+import { Page } from '#/components/page';
 import { useUserStore } from '#/core/stores';
-import { Profile } from '#/core/ui/common';
+import { $t } from '#/locales';
 
-import ProfileBase from './base-setting.vue';
-import ProfileNotificationSetting from './notification-setting.vue';
-import ProfilePasswordSetting from './password-setting.vue';
-import ProfileSecuritySetting from './security-setting.vue';
+import BaseSetting from './components/base-setting.vue';
+import OnlineDevice from './components/online-device.vue';
+import ProfileCard from './components/profile-card.vue';
+import SecuritySetting from './components/security-setting.vue';
 
 const userStore = useUserStore();
 
-const tabsValue = ref<string>('basic');
-
-const tabs = ref([
-  {
-    label: '基本设置',
-    value: 'basic',
-  },
-  {
-    label: '安全设置',
-    value: 'security',
-  },
-  {
-    label: '修改密码',
-    value: 'password',
-  },
-  {
-    label: '新消息提醒',
-    value: 'notice',
-  },
-]);
+function handleAvatarSuccess(newUrl: string) {
+  if (!newUrl || newUrl === userStore.userInfo?.avatar) return;
+  const info = userStore.userInfo as Record<string, any>;
+  if (info) {
+    userStore.setUserInfo({ ...info, avatar: newUrl } as any);
+  }
+  ElMessage.success($t('system.profile.avatar.success'));
+}
 </script>
+
 <template>
-  <Profile
-    v-model:model-value="tabsValue"
-    title="个人中心"
-    :user-info="userStore.userInfo"
-    :tabs="tabs"
-  >
-    <template #content>
-      <ProfileBase v-if="tabsValue === 'basic'" />
-      <ProfileSecuritySetting v-if="tabsValue === 'security'" />
-      <ProfilePasswordSetting v-if="tabsValue === 'password'" />
-      <ProfileNotificationSetting v-if="tabsValue === 'notice'" />
-    </template>
-  </Profile>
+  <Page>
+    <div class="flex flex-col gap-4 md:flex-row md:items-start md:gap-4">
+      <ProfileCard @avatar-success="handleAvatarSuccess" />
+
+      <div class="flex-1 min-w-0 space-y-4">
+        <div
+          class="rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 p-5"
+        >
+          <BaseSetting />
+        </div>
+        <div
+          class="rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 p-5"
+        >
+          <SecuritySetting />
+        </div>
+        <div
+          class="rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 p-5"
+        >
+          <OnlineDevice />
+        </div>
+      </div>
+    </div>
+  </Page>
 </template>

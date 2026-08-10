@@ -3,8 +3,10 @@
   "extends": "@vben/tsconfig/web-app.json",
   "compilerOptions": {
     "paths": {
-      "#/*": ["./src/*"]
-    }
+      "#/*": ["./src/*"],
+      "#lib/*": ["./lib/*"]
+    },
+    "types": ["vite/client"]
   },
   "references": [{ "path": "./tsconfig.node.json" }],
   "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],

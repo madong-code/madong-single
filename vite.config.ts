@@ -3,8 +3,8 @@ import { fileURLToPath, URL } from 'node:url';
 import ElementPlus from 'unplugin-element-plus/vite';
 
 import { defineConfig } from './build/vite';
+import { viteVisualFormElementPlusPlugin } from './build/vite/plugins/visual-form';
 
-const MOCK_SERVER_PORT = 5321;
 const ELEMENT_PLUS_STYLE_DEPS = [
   'button',
   'card',
@@ -32,31 +32,18 @@ const ELEMENT_PLUS_STYLE_DEPS = [
   'tree-select',
   'upload',
 ].map((component) => `element-plus/es/components/${component}/style/css`);
+const VISUAL_FORM_UMD_PATH = fileURLToPath(
+  new URL('lib/visual-form/designer.umd.js', import.meta.url),
+);
 
 export default defineConfig(async () => {
-  // #region debug-point D:optimize-deps-config
-  await fetch('http://127.0.0.1:7777/event', {
-    body: JSON.stringify({
-      data: { optimizeDepsInclude: ELEMENT_PLUS_STYLE_DEPS },
-      hypothesisId: 'D',
-      location: 'vite.config.ts',
-      msg: '[DEBUG] Element Plus style dependencies configured for pre-bundling',
-      runId: 'post-fix',
-      sessionId: 'browser-console-error',
-      ts: Date.now(),
-    }),
-    method: 'POST',
-  }).catch(() => {});
-  // #endregion
-
   return {
-    application: {
-      nitroMockOptions: {
-        port: MOCK_SERVER_PORT,
-      },
-    },
+    application: {},
     vite: {
       plugins: [
+        viteVisualFormElementPlusPlugin({
+          umdPath: VISUAL_FORM_UMD_PATH,
+        }),
         ElementPlus({
           format: 'esm',
         }),
@@ -67,18 +54,24 @@ export default defineConfig(async () => {
       resolve: {
         alias: {
           '#': fileURLToPath(new URL('src', import.meta.url)),
+          '#lib': fileURLToPath(new URL('lib', import.meta.url)),
         },
       },
       server: {
         proxy: {
-          '/api': {
+          '/adminapi': {
             changeOrigin: true,
-            target: `http://localhost:${MOCK_SERVER_PORT}`,
+            rewrite: (path) => path.replace(/^\/adminapi/, ''),
+            target: 'http://127.0.0.1:8500/adminapi',
             ws: true,
+          },
+          '/upload': {
+            changeOrigin: true,
+            target: 'http://127.0.0.1:8500',
           },
         },
         watch: {
-          ignored: ['**/tooling/mock/.nitro/**'],
+          ignored: ['**/.dbg/**', '**/tooling/mock/.nitro/**'],
         },
       },
     },

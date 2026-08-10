@@ -209,17 +209,6 @@
         "label": "启用表单全屏模式",
         "tip": "子项目可在自己的业务场景中读取这个拓展配置。"
       },
-      "tenantMode": {
-        "label": "租户模式",
-        "options": {
-          "single": {
-            "label": "单租户"
-          },
-          "multi": {
-            "label": "多租户"
-          }
-        }
-      },
       "defaultTableSize": {
         "label": "默认分页条数"
       },

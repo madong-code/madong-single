@@ -266,16 +266,6 @@ describe('preferences', () => {
           key: 'enableWorkbench',
           label: '启用工作台',
         },
-        {
-          component: 'select',
-          defaultValue: 'single',
-          key: 'tenantMode',
-          label: '租户模式',
-          options: [
-            { label: '单租户', value: 'single' },
-            { label: '多租户', value: 'multi' },
-          ],
-        },
       ],
       tabLabel: '扩展',
       title: '业务偏好',
@@ -289,7 +279,6 @@ describe('preferences', () => {
     expect(preferenceManager.getPreferencesExtension()).toEqual(extension);
     expect(preferenceManager.getCustomPreferences()).toEqual({
       enableWorkbench: true,
-      tenantMode: 'single',
     });
   });
 
@@ -397,13 +386,9 @@ describe('preferences', () => {
           },
           {
             component: 'select',
-            defaultValue: 'single',
-            key: 'tenantMode',
-            label: '租户模式',
-            options: [
-              { label: '单租户', value: 'single' },
-              { label: '多租户', value: 'multi' },
-            ],
+            defaultValue: true,
+            key: 'enableWorkbench',
+            label: '启用工作台',
           },
         ],
         tabLabel: '扩展',
@@ -415,7 +400,6 @@ describe('preferences', () => {
 
     preferenceManager.updateCustomPreferences({
       enableWorkbench: 'true' as unknown as boolean,
-      tenantMode: 'unknown',
       unknownField: 'value',
     } as any);
 

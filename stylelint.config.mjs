@@ -6,6 +6,7 @@ export default {
     '**/__tests__/**',
     '**/coverage/**',
     '**/.{agent,agents,claude,codex}/**',
+    'lib/**',
   ],
   root: true,
 };

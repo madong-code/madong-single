@@ -40,9 +40,14 @@ interface AccessState {
    */
   loginExpired: boolean;
   /**
-   * 登录 accessToken
+   * 登录 refreshToken
    */
   refreshToken: AccessToken;
+  /**
+   * 超级权限码，拥有这些权限码的用户被视为拥有所有权限
+   * @default ['*']
+   */
+  superCodes: string[];
 }
 
 /**
@@ -75,6 +80,9 @@ export const useAccessStore = defineStore('core-access', {
     },
     setAccessCodes(codes: string[]) {
       this.accessCodes = codes;
+    },
+    setSuperCodes(codes: string[]) {
+      this.superCodes = codes;
     },
     setAccessMenus(menus: MenuRecordRaw[]) {
       this.accessMenus = menus;
@@ -119,6 +127,7 @@ export const useAccessStore = defineStore('core-access', {
     lockScreenPassword: undefined,
     loginExpired: false,
     refreshToken: null,
+    superCodes: ['*'],
   }),
 });
 

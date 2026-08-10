@@ -2,7 +2,7 @@
 
 基于 Vue Vben Admin `v5.7.0` 重构的 Element Plus 单应用版本。
 
-运行时源码已从原 `apps`、`packages` 工作区合并到根目录 `src`，构建与部署配置归入 `build`，Mock 和工程工具归入 `tooling`。
+运行时源码已从原 `apps`、`packages` 工作区合并到根目录 `src`，可独立更新的授权软件包放入 `lib`，构建与部署配置归入 `build`，Mock 和工程工具归入 `tooling`。
 
 ## 技术栈
 
@@ -21,6 +21,7 @@
 ```text
 .
 ├─ build/                  # Vite 构建配置和部署脚本
+├─ lib/                    # 本地授权软件包
 ├─ public/                 # 静态资源
 ├─ tooling/                # Mock、代码规范和工程工具
 └─ src/
@@ -52,7 +53,9 @@
 - 应用层可以依赖 `src/core`。
 - `src/core` 不得反向依赖 `src/api`、`src/components`、`src/router` 或 `src/views`。
 - 应用根别名保持原模板约定：`#/*` 指向 `src/*`。
-- 运行时源码不使用 `@/*`、`@vben/*` 或 `@vben-core/*`。
+- 运行时源码不使用 `@/`、`@vben/*` 或 `@vben-core/*`。
+- `lib/*` 只存放授权产物，不放 `package.json`；接入层通过 `#lib/*` 加载资源。
+- 授权产物的加载、Element Plus 按需注册和主题适配放入 `src/core/plugins/*`。
 - 工程工具包可以继续使用 `@vben/*` workspace 名称。
 
 ## 开发

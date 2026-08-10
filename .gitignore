@@ -57,3 +57,9 @@ vite.config.ts.*
 skills-lock.json
 .atomcode
 datalog
+
+# 调试产物 / 临时文件
+.dbg/
+debug-*.md
+.gitkit
+

@@ -209,17 +209,6 @@
         "label": "Enable Form Fullscreen Mode",
         "tip": "Subprojects can read this extension configuration in their own business scenarios."
       },
-      "tenantMode": {
-        "label": "Tenant Mode",
-        "options": {
-          "single": {
-            "label": "Single Tenant"
-          },
-          "multi": {
-            "label": "Multi Tenant"
-          }
-        }
-      },
       "defaultTableSize": {
         "label": "Default Page Size"
       },

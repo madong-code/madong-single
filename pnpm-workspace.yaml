@@ -30,6 +30,7 @@ catalog:
   '@commitlint/cli': ^21.0.1
   '@commitlint/config-conventional': ^21.0.1
   '@ctrl/tinycolor': ^4.2.0
+  '@element-plus/icons-vue': ^2.3.2
   '@eslint-community/eslint-plugin-eslint-comments': ^4.7.1
   '@eslint/js': ^10.0.1
   '@faker-js/faker': ^10.4.0
@@ -78,6 +79,8 @@ catalog:
   '@vueuse/core': ^14.3.0
   '@vueuse/integrations': ^14.3.0
   '@vueuse/motion': ^3.0.3
+  '@wangeditor/editor': ^5.1.23
+  '@wangeditor/editor-for-vue': ^5.1.12
   archiver: ^7.0.1
   axios: ^1.16.1
   axios-mock-adapter: ^2.1.0
@@ -96,7 +99,7 @@ catalog:
   defu: ^6.1.7
   dotenv: ^17.4.2
   echarts: ^6.1.0
-  element-plus: ^2.14.0
+  element-plus: 2.13.7
   es-toolkit: ^1.46.1
   eslint: ^10.4.0
   eslint-plugin-better-tailwindcss: ^4.5.0

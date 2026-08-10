@@ -1,5 +1,6 @@
 import type { Router } from 'vue-router';
 
+import { getAccessCodesApi } from '#/api';
 import { preferences } from '#/core/preferences';
 import { startProgress, stopProgress } from '#/core/shared';
 import { LOGIN_PATH } from '#/core/shared/constants';
@@ -92,6 +93,14 @@ function setupAccessGuard(router: Router) {
     // 生成路由表
     // 当前登录用户拥有的角色标识列表
     const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
+
+    // 刷新页面时重新从后端获取最新权限码（若 authLogin 已预加载则跳过重复请求）
+    const accessCodes = accessStore.accessCodes;
+    if (!accessCodes || accessCodes.length === 0) {
+      const newAccessCodes = await getAccessCodesApi();
+      accessStore.setAccessCodes(newAccessCodes);
+    }
+
     const userRoles = userInfo.roles ?? [];
 
     // 生成菜单和路由

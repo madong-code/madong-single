@@ -37,5 +37,19 @@ const useVbenForm = useForm<ComponentType, ComponentPropsMap>;
 
 export { initSetupVbenForm, useVbenForm, z };
 
-export type VbenFormSchema = FormSchema<ComponentType, ComponentPropsMap>;
+type BaseFormSchema = FormSchema<ComponentType, ComponentPropsMap>;
+
+/**
+ * 扩展 VbenFormSchema，增加 viewComponent 和 viewComponentProps
+ * 用于 DetailView 详情展示
+ */
+export type VbenFormSchema = {
+  /** 在详情模式下隐藏该字段 */
+  hideInDetail?: boolean;
+  /** 详情模式使用的展示组件名称 */
+  viewComponent?: string;
+  /** 详情模式展示组件的参数 */
+  viewComponentProps?: Record<string, any>;
+} & BaseFormSchema;
+
 export type VbenFormProps = FormProps<ComponentType, ComponentPropsMap>;

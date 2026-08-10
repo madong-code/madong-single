@@ -17,7 +17,7 @@ const applicationLayerImportPattern = {
 };
 
 const runtimeNamespaceImportPattern = {
-  group: ['@/*', '@vben/*', '@vben-core/*'],
+  group: ['#/*', '@vben/*', '@vben-core/*'],
   message: 'Runtime source imports must use the local #/ namespace.',
 };
 

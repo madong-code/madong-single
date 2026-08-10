@@ -22,5 +22,7 @@ export default defineConfig({
     '.npmrc',
     '*-lock.yaml',
     'skills-lock.json',
+    'lib/**',
+    'src/utils/push/push-vue.js',
   ],
 });

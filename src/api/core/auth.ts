@@ -1,45 +1,19 @@
 import { baseRequestClient, requestClient } from '#/api/request';
 
-export namespace AuthApi {
-  /** 登录接口参数 */
-  export interface LoginParams {
-    password?: string;
-    username?: string;
-  }
-
-  /** 登录接口返回值 */
-  export interface LoginResult {
-    accessToken: string;
-  }
-
-  export interface RefreshTokenResult {
-    data: string;
-    status: number;
-  }
-}
-
-/**
- * 登录
- */
-export async function loginApi(data: AuthApi.LoginParams) {
-  return requestClient.post<AuthApi.LoginResult>('/auth/login', data);
+export interface LoginResult {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  client_id: string;
+  expires_time: number;
 }
 
 /**
  * 刷新accessToken
  */
-export async function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>('/auth/refresh', {
-    withCredentials: true,
-  });
-}
-
-/**
- * 退出登录
- */
-export async function logoutApi() {
-  return baseRequestClient.post('/auth/logout', {
-    withCredentials: true,
+export async function refreshTokenApi(refreshToken: string) {
+  return baseRequestClient.post('/system/auth/refresh-token', {
+    refresh_token: refreshToken,
   });
 }
 
@@ -47,5 +21,5 @@ export async function logoutApi() {
  * 获取用户权限码
  */
 export async function getAccessCodesApi() {
-  return requestClient.get<string[]>('/auth/codes');
+  return requestClient.get<string[]>('/system/auth/perm-code');
 }

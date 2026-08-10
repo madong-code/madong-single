@@ -27,10 +27,15 @@ function useAccess() {
    * @param codes
    */
   function hasAccessByCodes(codes: string[]) {
-    const userCodesSet = new Set(accessStore.accessCodes);
+    const userCodes = accessStore.accessCodes;
+    const superCodes = accessStore.superCodes;
+    const userCodesSet = new Set(userCodes);
 
     const intersection = codes.filter((item) => userCodesSet.has(item));
-    return intersection.length > 0;
+    const superMatched = userCodes.some((code) => superCodes.includes(code));
+    const result = superMatched || intersection.length > 0;
+
+    return result;
   }
 
   async function toggleAccessMode() {
