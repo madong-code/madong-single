@@ -63,3 +63,7 @@ datalog
 debug-*.md
 .gitkit
 
+# 本地插件：整个 plugin 目录不入库（避免泄漏），仅 demo 插件除外
+src/plugin/*
+!src/plugin/demo/
+
