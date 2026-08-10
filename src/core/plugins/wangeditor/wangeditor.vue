@@ -13,7 +13,7 @@ import type {
   WangEditorUploadConfig,
 } from './types';
 
-import { computed, onBeforeUnmount, shallowRef, watch } from 'vue';
+import { computed, onBeforeUnmount, shallowRef } from 'vue';
 
 import { Boot } from '@wangeditor/editor';
 // 关键：具名导入，不是 default 导入！兼容 Vue 3.5+
@@ -268,11 +268,6 @@ function onCreateEditor(editor: IDomEditor) {
   });
 }
 
-// #region debug-point C:editor-change
-function onEditorChange(editor: IDomEditor) {
-}
-// #endregion
-
 onBeforeUnmount(() => {
   // 清理全屏按钮轮询定时器
   fullscreenTimers.forEach((timer) => clearTimeout(timer));
@@ -322,7 +317,6 @@ defineExpose<WangEditorExpose>({
       :default-config="editorConfig"
       :editable="editable"
       @on-created="onCreateEditor"
-      @on-change="onEditorChange"
     />
 
     <!-- 预览弹窗 -->

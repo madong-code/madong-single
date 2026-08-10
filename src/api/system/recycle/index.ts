@@ -13,12 +13,12 @@ export const RecycleBinService = {
   },
 
   /** 批量恢复 */
-  batchRestore(ids: (string | number)[]) {
+  batchRestore(ids: (number | string)[]) {
     return requestClient.put(`${baseUrl}/restore`, { ids });
   },
 
   /** 批量删除（永久删除回收站记录） */
-  batchDelete(ids: (string | number)[]) {
+  batchDelete(ids: (number | string)[]) {
     return requestClient.delete(baseUrl, { data: { ids } });
   },
 };

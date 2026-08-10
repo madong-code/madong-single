@@ -5,18 +5,10 @@ import { useRouter } from 'vue-router';
 
 import { defineStore } from 'pinia';
 
-import {
-  getAccessCodesApi,
-  getUserInfoApi,
-  loginApi,
-  logoutApi,
-} from '#/api';
+import { getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
 import { preferences } from '#/core/preferences';
 import { LOGIN_PATH } from '#/core/shared/constants';
 import { resetAllStores, useAccessStore, useUserStore } from '#/core/stores';
-import { resetRoutes as resetRouterRoutes } from '#/router';
-import { generateAccess } from '#/router/access';
-import { accessRoutes } from '#/router/routes';
 import { useSiteConfigStore } from '#/store/modules/site-config';
 
 export const useAuthStore = defineStore('auth', () => {

@@ -10,6 +10,7 @@
  */
 
 import type { GenerateColumnRow } from './types';
+
 import BaseService from '#/api/core/base';
 
 const baseUrl = '/generate-column/generatecolumn';

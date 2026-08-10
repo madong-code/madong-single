@@ -30,7 +30,6 @@ const codeLoading = ref(false);
 const code = ref('');
 const language = ref('');
 const treeKey = ref('');
-const treeRef = ref();
 
 const fetchPreviewData = async (id: number | string) => {
   code.value = '';
@@ -45,9 +44,10 @@ const fetchPreviewData = async (id: number | string) => {
     treeData.value = convertListToTree(
       response.map((el) => el.file_dir + el.name),
     ) as TreeNode[];
-    if (previewList.value.length > 0) {
-      code.value = previewList.value[0].content;
-      detectLanguage(previewList.value[0].name);
+    const firstFile = previewList.value[0];
+    if (firstFile) {
+      code.value = firstFile.content;
+      detectLanguage(firstFile.name);
     }
   } catch {
     ElMessage.error($t('codegen.generate.preview.fetch_error'));
@@ -149,13 +149,12 @@ defineExpose({
           <ElTree
             v-if="treeData.length > 0 && treeKey !== ''"
             :data="treeData"
-            :props="{ label: 'name', value: 'key' }"
+            :props="{ label: 'name' }"
             node-key="key"
             :current-node-key="treeKey"
             :expand-on-click-node="false"
             highlight-current
             default-expand-all
-            ref="treeRef"
             @node-click="handleNodeClick"
           >
             <template #default="{ node, data }">

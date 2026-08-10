@@ -10,6 +10,7 @@
  */
 
 import type { SysAdminTypeRow } from './types';
+
 import BaseService from '#/api/core/base';
 
 const baseUrl = '/sys-admin-type/sysadmintype';

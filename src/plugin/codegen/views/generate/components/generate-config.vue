@@ -273,7 +273,8 @@ defineExpose({
             v-if="localConfigData.addon_name"
             clearable
             v-model="localConfigData.parent_menu"
-            :props="{ label: 'menu_name', value: 'menu_key' }"
+            :props="{ label: 'menu_name' }"
+            node-key="menu_key"
             :data="addonMenuList"
             check-strictly
             :render-after-expand="false"
@@ -284,7 +285,8 @@ defineExpose({
             v-else
             v-model="localConfigData.parent_menu"
             clearable
-            :props="{ label: 'menu_name', value: 'menu_key' }"
+            :props="{ label: 'menu_name' }"
+            node-key="menu_key"
             :data="sysMenuList"
             check-strictly
             :render-after-expand="false"

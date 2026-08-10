@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+
 import { nextTick, ref } from 'vue';
 
 import { ElButton, ElDrawer, ElMessage, ElMessageBox } from 'element-plus';
 
-import { useVbenVxeGrid, type VxeTableGridOptions } from '#/adapter/vxe-table';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { GeneratorTableService } from '#/api/app/plugin/codegen/table';
 import { $t } from '#/locales';
 
@@ -111,7 +113,7 @@ function show() {
 /** 批量恢复 */
 async function handleRestore() {
   const ids = selectedKeys.value;
-  if (!ids.length) {
+  if (ids.length === 0) {
     ElMessage.warning($t('codegen.table.table.recycle.select_first'));
     return;
   }
@@ -125,15 +127,15 @@ async function handleRestore() {
     ElMessage.success($t('codegen.table.table.recycle.restore_success'));
     gridApi.reload();
     emit('success');
-  } catch (e: any) {
-    ElMessage.error(e?.message || $t('common.error'));
+  } catch (error: any) {
+    ElMessage.error(error?.message || $t('common.error'));
   }
 }
 
 /** 批量删除 */
 async function handleDelete() {
   const ids = selectedKeys.value;
-  if (!ids.length) {
+  if (ids.length === 0) {
     ElMessage.warning($t('codegen.table.table.recycle.select_first'));
     return;
   }
@@ -147,8 +149,8 @@ async function handleDelete() {
     ElMessage.success($t('codegen.table.table.recycle.delete_success'));
     gridApi.reload();
     emit('success');
-  } catch (e: any) {
-    ElMessage.error(e?.message || $t('common.error'));
+  } catch (error: any) {
+    ElMessage.error(error?.message || $t('common.error'));
   }
 }
 
@@ -166,24 +168,35 @@ defineExpose({ show });
   >
     <div class="m-drawer-body">
       <div class="mb-2 flex items-center gap-2">
-        <ElButton type="primary" :disabled="!selectedKeys.length" @click="handleRestore">
+        <ElButton
+          type="primary"
+          :disabled="selectedKeys.length === 0"
+          @click="handleRestore"
+        >
           {{ $t('codegen.table.table.recycle.restore') }}
         </ElButton>
-        <ElButton type="danger" :disabled="!selectedKeys.length" @click="handleDelete">
+        <ElButton
+          type="danger"
+          :disabled="selectedKeys.length === 0"
+          @click="handleDelete"
+        >
           {{ $t('codegen.table.table.recycle.delete') }}
         </ElButton>
       </div>
-      <Grid @checkbox-change="onCheckboxChange" @checkbox-all="onCheckboxChange" />
+      <Grid
+        @checkbox-change="onCheckboxChange"
+        @checkbox-all="onCheckboxChange"
+      />
     </div>
   </ElDrawer>
 </template>
 
 <style scoped>
 .m-drawer-body {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   padding: 16px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
 }
 </style>

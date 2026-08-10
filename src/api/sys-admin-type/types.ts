@@ -19,9 +19,6 @@ export interface SysAdminTypeRow {
   name: string;
   /** 更新时间 */
   updated_at: number;
-  /** 主键ID */
-  id: number;
   /** 排序 */
   sort: number;
-
 }

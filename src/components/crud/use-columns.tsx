@@ -15,7 +15,9 @@ import { TableAction } from './components/table-action';
 const BUILTIN_CENTER_COLUMNS = (col: CrudColumn) =>
   col.cellRender?.name === 'CellDictTag' ||
   col.cellRender?.name === 'CellDict' ||
-  /(_at|_time)$|^(created|updated|create|update|time|date)/i.test(String(col.field ?? ''));
+  /(_at|_time)$|^(created|updated|create|update|time|date)/i.test(
+    String(col.field ?? ''),
+  );
 
 interface UseColumnsOptions {
   columns: CrudColumn[];

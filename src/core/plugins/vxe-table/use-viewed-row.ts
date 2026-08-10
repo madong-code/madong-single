@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-nested-ternary */
 import type { VxeGridProps as VxeTableGridProps } from 'vxe-table';
 
 import type {

@@ -4,13 +4,13 @@ import { ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { useCrud } from '#/adapter/crud';
-import { Page } from '#/components/page';
 import { GeneratorTableService } from '#/api/app/plugin/codegen/table';
+import { Page } from '#/components/page';
 import { $t } from '#/locales';
 
 import TableCreate from './components/table-create.vue';
-import TableStructure from './components/table-structure.vue';
 import TableRecycle from './components/table-recycle.vue';
+import TableStructure from './components/table-structure.vue';
 
 defineOptions({ name: 'CodegenTable' });
 
@@ -29,7 +29,11 @@ const [TableCrud, crudApi] = useCrud({
   hasBatchRemove: false,
   columns: [
     { field: 'name', title: $t('codegen.table.table.name'), minWidth: 200 },
-    { field: 'comment', title: $t('codegen.table.table.comment'), minWidth: 180 },
+    {
+      field: 'comment',
+      title: $t('codegen.table.table.comment'),
+      minWidth: 180,
+    },
     { field: 'engine', title: $t('codegen.table.table.engine'), width: 120 },
     { field: 'rows', title: $t('codegen.table.table.rows'), width: 110 },
     {
@@ -131,7 +135,7 @@ async function handleCleanup() {
 function showBatchResult(res: any, okMsg: string) {
   const data: any[] = res?.data ?? [];
   const failed = data.filter((it: any) => !it.success);
-  if (failed.length) {
+  if (failed.length > 0) {
     ElMessage.warning(
       $t('codegen.table.table.cleanup_result', [
         data.length - failed.length,

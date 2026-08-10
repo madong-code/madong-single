@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 
 import {
   ElButton,
@@ -23,12 +23,17 @@ import RelationSettings from './components/relation-settings.vue';
 defineOptions({ name: 'CodegenGeneratorEditor' });
 
 const route = useRoute();
-const router = useRouter();
 const { closeCurrentTab } = useTabs();
 
 const activeName = ref('basic');
 const formData = reactive({
-  basic: {},
+  basic: {
+    table_name: '',
+    table_content: '',
+    plugin_name: '',
+    module_name: '',
+    class_name: '',
+  },
   columns: [],
   config: {
     is_delete: 0,
@@ -48,10 +53,6 @@ const handleBasicDataChange = (data: any) => {
 };
 
 const generatorId = ref<null | string>(null);
-const basicRef = ref();
-const fieldRef = ref();
-const configRef = ref();
-const relationRef = ref();
 
 const back = () => {
   closeCurrentTab();
@@ -156,20 +157,18 @@ onMounted(async () => {
         <ElTabs v-model="activeName">
           <ElTabPane :label="$t('codegen.generate.editor.basic')" name="basic">
             <BasicSettings
-              ref="basicRef"
               v-model:model-value="formData.basic"
               @data-change="handleBasicDataChange"
             />
           </ElTabPane>
           <ElTabPane :label="$t('codegen.generate.editor.field')" name="field">
-            <FieldSettings
-              ref="fieldRef"
-              v-model:table-column="formData.columns"
-            />
+            <FieldSettings v-model:table-column="formData.columns" />
           </ElTabPane>
-          <ElTabPane :label="$t('codegen.generate.editor.config')" name="config">
+          <ElTabPane
+            :label="$t('codegen.generate.editor.config')"
+            name="config"
+          >
             <GenerateConfig
-              ref="configRef"
               v-model:config-data="formData.config"
               :table-column="formData.columns"
               :basic-data="formData.basic"
@@ -179,7 +178,7 @@ onMounted(async () => {
             :label="$t('codegen.generate.editor.relation')"
             name="relation"
           >
-            <RelationSettings ref="relationRef" v-model="formData.relations" />
+            <RelationSettings v-model="formData.relations" />
           </ElTabPane>
         </ElTabs>
       </ElCard>
@@ -244,7 +243,7 @@ onMounted(async () => {
   justify-content: center;
 }
 
-::deep(.el-card__body) {
+:deep(.el-card__body) {
   padding-left: 30px;
 }
 </style>

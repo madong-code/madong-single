@@ -18,13 +18,10 @@ export interface MemberSignRow {
   /** 会员ID */
   member_id: number;
   device_ip: string;
-  /** 雪花ID */
-  id: number;
   /** 签到日期 */
   sign_date: string;
   device_ua: string;
   /** 连续签到天数 */
   continuous_days: number;
   updated_at: number;
-
 }

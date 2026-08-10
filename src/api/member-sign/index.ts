@@ -10,6 +10,7 @@
  */
 
 import type { MemberSignRow } from './types';
+
 import BaseService from '#/api/core/base';
 
 const baseUrl = '/member-sign/membersign';

@@ -24,26 +24,6 @@ function updateCSSVariables(preferences: Preferences) {
   if (Reflect.has(theme, 'mode')) {
     const dark = isDarkTheme(mode);
     root.classList.toggle('dark', dark);
-
-    requestAnimationFrame(() => {
-      const rootStyle = getComputedStyle(root);
-      const sampleSelectors = [
-        '.el-card',
-        '.el-dialog',
-        '.vxe-table',
-        '.vben-page',
-      ];
-      const samples = sampleSelectors.map((selector) => {
-        const element = document.querySelector(selector);
-        const style = element ? getComputedStyle(element) : null;
-        return {
-          backgroundColor: style?.backgroundColor,
-          color: style?.color,
-          found: Boolean(element),
-          selector,
-        };
-      });
-    });
   }
 
   // html 设置 data-theme=[builtinType]

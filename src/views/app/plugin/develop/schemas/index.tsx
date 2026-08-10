@@ -47,7 +47,7 @@ export const useCrudSchema = (): CrudSchema => {
                   src={row.icon}
                 />
               ) : (
-                <span class="flex-center size-8 shrink-0   rounded-sm bg-gray-100 text-base dark:bg-gray-700">
+                <span class="flex-center size-8 shrink-0 rounded-sm bg-gray-100 text-base dark:bg-gray-700">
                   📦
                 </span>
               )}

@@ -28,7 +28,6 @@ export namespace AuthApi {
     expires_in: number;
     expires_at: number;
   }
-
 }
 
 export async function loginApi(data: AuthApi.LoginParams) {

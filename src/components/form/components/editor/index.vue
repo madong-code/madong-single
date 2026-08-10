@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useSlots, watch } from 'vue';
+import { computed, ref, useSlots } from 'vue';
 
 import { ElButton } from 'element-plus';
 

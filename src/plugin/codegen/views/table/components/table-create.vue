@@ -16,14 +16,13 @@ import {
   ElTableColumn,
 } from 'element-plus';
 
-import { $t } from '#/locales';
-
 import { GeneratorTableService } from '#/api/app/plugin/codegen/table';
+import { $t } from '#/locales';
 
 interface ColumnField {
   name: string;
   type: string;
-  length: number | null;
+  length: null | number;
   nullable: boolean;
   primary: boolean;
   auto_increment: boolean;
@@ -64,9 +63,33 @@ const typeOptions = [
 ];
 
 const fields = ref<ColumnField[]>([
-  { name: 'id', type: 'bigint', length: null, nullable: false, primary: true, auto_increment: true, comment: '主键' },
-  { name: 'created_at', type: 'datetime', length: null, nullable: false, primary: false, auto_increment: false, comment: '创建时间' },
-  { name: 'updated_at', type: 'datetime', length: null, nullable: false, primary: false, auto_increment: false, comment: '更新时间' },
+  {
+    name: 'id',
+    type: 'bigint',
+    length: null,
+    nullable: false,
+    primary: true,
+    auto_increment: true,
+    comment: '主键',
+  },
+  {
+    name: 'created_at',
+    type: 'datetime',
+    length: null,
+    nullable: false,
+    primary: false,
+    auto_increment: false,
+    comment: '创建时间',
+  },
+  {
+    name: 'updated_at',
+    type: 'datetime',
+    length: null,
+    nullable: false,
+    primary: false,
+    auto_increment: false,
+    comment: '更新时间',
+  },
 ]);
 
 function addField() {
@@ -88,7 +111,7 @@ function removeField(idx: number) {
 async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
-  if (!fields.value.length) {
+  if (fields.value.length === 0) {
     ElMessage.warning($t('codegen.table.table.create.add_field'));
     return;
   }
@@ -102,8 +125,8 @@ async function handleSubmit() {
     ElMessage.success($t('common.success'));
     visible.value = false;
     emit('success');
-  } catch (e: any) {
-    ElMessage.error(e?.message || $t('common.error'));
+  } catch (error: any) {
+    ElMessage.error(error?.message || $t('common.error'));
   } finally {
     saving.value = false;
   }
@@ -113,9 +136,33 @@ function show() {
   form.name = '';
   form.comment = '';
   fields.value = [
-    { name: 'id', type: 'bigint', length: null, nullable: false, primary: true, auto_increment: true, comment: '主键' },
-    { name: 'created_at', type: 'datetime', length: null, nullable: false, primary: false, auto_increment: false, comment: '创建时间' },
-    { name: 'updated_at', type: 'datetime', length: null, nullable: false, primary: false, auto_increment: false, comment: '更新时间' },
+    {
+      name: 'id',
+      type: 'bigint',
+      length: null,
+      nullable: false,
+      primary: true,
+      auto_increment: true,
+      comment: '主键',
+    },
+    {
+      name: 'created_at',
+      type: 'datetime',
+      length: null,
+      nullable: false,
+      primary: false,
+      auto_increment: false,
+      comment: '创建时间',
+    },
+    {
+      name: 'updated_at',
+      type: 'datetime',
+      length: null,
+      nullable: false,
+      primary: false,
+      auto_increment: false,
+      comment: '更新时间',
+    },
   ];
   visible.value = true;
 }
@@ -147,44 +194,80 @@ defineExpose({ show });
             </ElButton>
             <ElTable :data="fields" border class="mt-2">
               <ElTableColumn type="index" width="50" />
-              <ElTableColumn :label="$t('codegen.table.table.create.field_name')">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.field_name')"
+              >
                 <template #default="{ row }">
                   <ElInput v-model="row.name" size="small" />
                 </template>
               </ElTableColumn>
-              <ElTableColumn :label="$t('codegen.table.table.create.field_type')" width="120">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.field_type')"
+                width="120"
+              >
                 <template #default="{ row }">
                   <ElSelect v-model="row.type" size="small">
-                    <ElOption v-for="t in typeOptions" :key="t.value" :label="t.label" :value="t.value" />
+                    <ElOption
+                      v-for="t in typeOptions"
+                      :key="t.value"
+                      :label="t.label"
+                      :value="t.value"
+                    />
                   </ElSelect>
                 </template>
               </ElTableColumn>
-              <ElTableColumn :label="$t('codegen.table.table.create.field_length')" width="100">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.field_length')"
+                width="100"
+              >
                 <template #default="{ row }">
-                  <ElInputNumber v-model="row.length" :min="0" size="small" controls-position="right" />
+                  <ElInputNumber
+                    v-model="row.length"
+                    :min="0"
+                    size="small"
+                    controls-position="right"
+                  />
                 </template>
               </ElTableColumn>
-              <ElTableColumn :label="$t('codegen.table.table.create.nullable')" width="80" align="center">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.nullable')"
+                width="80"
+                align="center"
+              >
                 <template #default="{ row }">
                   <ElSwitch v-model="row.nullable" />
                 </template>
               </ElTableColumn>
-              <ElTableColumn :label="$t('codegen.table.table.create.primary')" width="80" align="center">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.primary')"
+                width="80"
+                align="center"
+              >
                 <template #default="{ row }">
                   <ElSwitch v-model="row.primary" />
                 </template>
               </ElTableColumn>
-              <ElTableColumn :label="$t('codegen.table.table.create.auto_increment')" width="80" align="center">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.auto_increment')"
+                width="80"
+                align="center"
+              >
                 <template #default="{ row }">
                   <ElSwitch v-model="row.auto_increment" />
                 </template>
               </ElTableColumn>
-              <ElTableColumn :label="$t('codegen.table.table.create.field_comment')">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.field_comment')"
+              >
                 <template #default="{ row }">
                   <ElInput v-model="row.comment" size="small" />
                 </template>
               </ElTableColumn>
-              <ElTableColumn :label="$t('codegen.table.table.create.operation')" width="80" align="center">
+              <ElTableColumn
+                :label="$t('codegen.table.table.create.operation')"
+                width="80"
+                align="center"
+              >
                 <template #default="{ $index }">
                   <ElButton type="danger" link @click="removeField($index)">
                     {{ $t('common.delete') }}

@@ -35,8 +35,6 @@ export interface GenerateColumnRow {
   validate_type: string;
   /** 删除时间 */
   deleted_at: number;
-  /** 主键ID */
-  id: number;
   /** 列名 */
   column_name: string;
   /** 是否更新字段: 1=是 0=否 */
@@ -77,5 +75,4 @@ export interface GenerateColumnRow {
   plugin: string;
   /** 创建者 */
   created_by: number;
-
 }

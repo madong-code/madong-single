@@ -43,7 +43,7 @@ export const GeneratorTableService = {
   /**
    * 移入回收站
    */
-  recycle(ids: (string | number)[]) {
+  recycle(ids: (number | string)[]) {
     return requestClient.post('/codegen/generator/table/recycle', { ids });
   },
 
@@ -51,20 +51,26 @@ export const GeneratorTableService = {
    * 回收站列表
    */
   recycleList(params: Record<string, any>) {
-    return requestClient.get('/codegen/generator/table/recycle-list', { params });
+    return requestClient.get('/codegen/generator/table/recycle-list', {
+      params,
+    });
   },
 
   /**
    * 回收站恢复
    */
-  recycleRestore(ids: (string | number)[]) {
-    return requestClient.put('/codegen/generator/table/recycle/restore', { ids });
+  recycleRestore(ids: (number | string)[]) {
+    return requestClient.put('/codegen/generator/table/recycle/restore', {
+      ids,
+    });
   },
 
   /**
    * 回收站删除
    */
-  recycleDelete(ids: (string | number)[]) {
-    return requestClient.delete('/codegen/generator/table/recycle', { data: { ids } });
+  recycleDelete(ids: (number | string)[]) {
+    return requestClient.delete('/codegen/generator/table/recycle', {
+      data: { ids },
+    });
   },
 };

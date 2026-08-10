@@ -3,8 +3,8 @@ import { ref } from 'vue';
 // src/store/modules/site-config.ts
 import { defineStore } from 'pinia';
 
-import { setPreferences } from '#/core/preferences';
 import { ConfigService } from '#/api/system/config';
+import { setPreferences } from '#/core/preferences';
 import { buildStaticUrl } from '#/utils/url';
 
 // 站点配置的分组与编码（与后端 config 表一致）

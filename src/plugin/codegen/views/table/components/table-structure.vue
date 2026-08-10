@@ -6,13 +6,12 @@ import {
   ElMessage,
   ElTable,
   ElTableColumn,
-  ElTabs,
   ElTabPane,
+  ElTabs,
 } from 'element-plus';
 
-import { $t } from '#/locales';
-
 import { GeneratorTableService } from '#/api/app/plugin/codegen/table';
+import { $t } from '#/locales';
 
 interface StructColumn {
   field: string;
@@ -20,7 +19,7 @@ interface StructColumn {
   collation: string;
   null: string;
   key: string;
-  default: string | null;
+  default: null | string;
   extra: string;
   comment: string;
 }
@@ -33,7 +32,7 @@ interface StructData {
 }
 
 const visible = ref(false);
-const data = ref<StructData | null>(null);
+const data = ref<null | StructData>(null);
 const loading = ref(false);
 const activeTab = ref('columns');
 
@@ -44,8 +43,8 @@ async function load(name: string) {
   try {
     const res = await GeneratorTableService.getStructure(name);
     data.value = res;
-  } catch (e: any) {
-    ElMessage.error(e?.message || $t('common.error'));
+  } catch (error: any) {
+    ElMessage.error(error?.message || $t('common.error'));
   } finally {
     loading.value = false;
   }
@@ -85,16 +84,48 @@ defineExpose({ show });
       </div>
 
       <template v-if="data">
-        <ElTable v-if="activeTab === 'columns'" :data="data.columns ?? []" border>
+        <ElTable
+          v-if="activeTab === 'columns'"
+          :data="data.columns ?? []"
+          border
+        >
           <ElTableColumn type="index" width="50" />
-          <ElTableColumn prop="field" :label="$t('codegen.table.table.structure.field')" />
-          <ElTableColumn prop="type" :label="$t('codegen.table.table.structure.type')" />
-          <ElTableColumn prop="collation" :label="$t('codegen.table.table.structure.collation')" />
-          <ElTableColumn prop="null" :label="$t('codegen.table.table.structure.nullable')" width="80" align="center" />
-          <ElTableColumn prop="key" :label="$t('codegen.table.table.structure.key')" width="80" align="center" />
-          <ElTableColumn prop="default" :label="$t('codegen.table.table.structure.default')" />
-          <ElTableColumn prop="extra" :label="$t('codegen.table.table.structure.extra')" />
-          <ElTableColumn prop="comment" :label="$t('codegen.table.table.structure.comment')" />
+          <ElTableColumn
+            prop="field"
+            :label="$t('codegen.table.table.structure.field')"
+          />
+          <ElTableColumn
+            prop="type"
+            :label="$t('codegen.table.table.structure.type')"
+          />
+          <ElTableColumn
+            prop="collation"
+            :label="$t('codegen.table.table.structure.collation')"
+          />
+          <ElTableColumn
+            prop="null"
+            :label="$t('codegen.table.table.structure.nullable')"
+            width="80"
+            align="center"
+          />
+          <ElTableColumn
+            prop="key"
+            :label="$t('codegen.table.table.structure.key')"
+            width="80"
+            align="center"
+          />
+          <ElTableColumn
+            prop="default"
+            :label="$t('codegen.table.table.structure.default')"
+          />
+          <ElTableColumn
+            prop="extra"
+            :label="$t('codegen.table.table.structure.extra')"
+          />
+          <ElTableColumn
+            prop="comment"
+            :label="$t('codegen.table.table.structure.comment')"
+          />
         </ElTable>
         <pre v-else class="m-structure-sql">{{ data.create_sql || '--' }}</pre>
       </template>
@@ -104,24 +135,24 @@ defineExpose({ show });
 
 <style scoped>
 .m-drawer-body {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   padding: 16px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
 }
 
 .m-structure-sql {
-  margin: 0;
   padding: 12px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  background-color: #f5f7fa;
-  color: #303133;
+  margin: 0;
+  overflow-x: auto;
   font-size: 12px;
   line-height: 1.6;
-  white-space: pre-wrap;
+  color: #303133;
   word-break: break-all;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  background-color: #f5f7fa;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
 }
 </style>

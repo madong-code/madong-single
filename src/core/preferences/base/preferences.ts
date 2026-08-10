@@ -180,6 +180,36 @@ class PreferenceManager {
   };
 
   /**
+   * 强制覆盖偏好设置（更新值真正覆盖当前 state 中已有字段）
+   * 用于从服务端拉取的站点配置（名称/Logo）覆盖本地默认值。
+   *
+   * 注意：内部使用 defu 合并（仅补齐缺失字段），无法覆盖已有值。
+   * 这里采用「逐字段直接赋值」的方式，确保服务端配置能真正覆盖 env 默认值。
+   *
+   * @param updates - 要覆盖的偏好设置
+   */
+  setPreferences = (updates: DeepPartial<Preferences>) => {
+    // 直接逐字段赋给 state，绕过 defu 合并语义（defu 不覆盖已有字段）
+    const cloned = this.cloneValue(updates);
+    if (cloned.app) {
+      Object.assign(this.state.app, cloned.app);
+    }
+    if (cloned.logo) {
+      Object.assign(this.state.logo, cloned.logo);
+    }
+    for (const key of Object.keys(cloned)) {
+      if (key === 'app' || key === 'logo') continue;
+      (this.state as any)[key] = (cloned as any)[key];
+    }
+
+    // 根据更新的值执行更新（让主题相关的 CSS 变量等也能响应）
+    this.handleUpdates(updates);
+
+    // 保存到缓存（fire-and-forget，通过 debounce 控制频率）
+    this.debouncedSave();
+  };
+
+  /**
    * 更新扩展偏好设置
    * @param updates - 要更新的扩展偏好设置
    */
@@ -212,36 +242,6 @@ class PreferenceManager {
     Object.assign(this.state, mergedState);
 
     // 根据更新的值执行更新
-    this.handleUpdates(updates);
-
-    // 保存到缓存（fire-and-forget，通过 debounce 控制频率）
-    this.debouncedSave();
-  };
-
-  /**
-   * 强制覆盖偏好设置（更新值真正覆盖当前 state 中已有字段）
-   * 用于从服务端拉取的站点配置（名称/Logo）覆盖本地默认值。
-   *
-   * 注意：内部使用 defu 合并（仅补齐缺失字段），无法覆盖已有值。
-   * 这里采用「逐字段直接赋值」的方式，确保服务端配置能真正覆盖 env 默认值。
-   *
-   * @param updates - 要覆盖的偏好设置
-   */
-  setPreferences = (updates: DeepPartial<Preferences>) => {
-    // 直接逐字段赋给 state，绕过 defu 合并语义（defu 不覆盖已有字段）
-    const cloned = this.cloneValue(updates);
-    if (cloned.app) {
-      Object.assign(this.state.app, cloned.app);
-    }
-    if (cloned.logo) {
-      Object.assign(this.state.logo, cloned.logo);
-    }
-    for (const key of Object.keys(cloned)) {
-      if (key === 'app' || key === 'logo') continue;
-      (this.state as any)[key] = (cloned as any)[key];
-    }
-
-    // 根据更新的值执行更新（让主题相关的 CSS 变量等也能响应）
     this.handleUpdates(updates);
 
     // 保存到缓存（fire-and-forget，通过 debounce 控制频率）

@@ -165,8 +165,10 @@ const handleSubmit = async () => {
   } catch {}
 };
 
-const getRelationTypeTag = (type: string) => {
-  const map: Record<string, string> = {
+const getRelationTypeTag = (
+  type: string,
+): 'danger' | 'info' | 'primary' | 'success' | 'warning' => {
+  const map: Record<string, 'danger' | 'info' | 'success' | 'warning'> = {
     one_to_one: 'success',
     one_to_many: 'warning',
     many_to_many: 'danger',
@@ -311,7 +313,9 @@ defineExpose({
         >
           <ElInput
             v-model="relationForm.name"
-            :placeholder="$t('codegen.generate.relation.method_name_placeholder')"
+            :placeholder="
+              $t('codegen.generate.relation.method_name_placeholder')
+            "
           />
         </ElFormItem>
         <ElFormItem :label="$t('codegen.generate.relation.app')" prop="addon">
@@ -341,7 +345,9 @@ defineExpose({
         >
           <ElInput
             v-model="relationForm.foreign_key"
-            :placeholder="$t('codegen.generate.relation.foreign_key_placeholder')"
+            :placeholder="
+              $t('codegen.generate.relation.foreign_key_placeholder')
+            "
           />
         </ElFormItem>
       </ElForm>

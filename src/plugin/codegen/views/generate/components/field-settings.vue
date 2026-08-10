@@ -128,7 +128,9 @@ const initDragToReorder = () => {
       if (newIndex === oldIndex) return;
       const tableData = [...props.tableColumn];
       const currRow = tableData.splice(oldIndex, 1)[0];
-      tableData.splice(newIndex, 0, currRow);
+      if (currRow) {
+        tableData.splice(newIndex, 0, currRow);
+      }
       emit('update:tableColumn', tableData);
       toggleIndex.value += 1;
     },
@@ -182,7 +184,8 @@ onMounted(() => {
         <template #default>
           <span
             class="drag-handle cursor-grab text-gray-400 hover:text-gray-600 text-lg"
-            >⠿</span>
+            >⠿</span
+          >
         </template>
       </ElTableColumn>
       <ElTableColumn
@@ -199,7 +202,9 @@ onMounted(() => {
         <template #default="{ row }">
           <ElInput
             v-model.trim="row.column_comment"
-            :placeholder="$t('codegen.generate.field.placeholder.column_comment')"
+            :placeholder="
+              $t('codegen.generate.field.placeholder.column_comment')
+            "
             @blur="handleDataChange"
           />
         </template>
