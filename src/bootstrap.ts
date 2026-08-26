@@ -71,6 +71,15 @@ async function bootstrap(namespace: string) {
   const { MotionPlugin } = await import('#/core/plugins/motion');
   app.use(MotionPlugin);
 
+  // 初始化 Visual Form 插件（VForm3 可视化表单设计器）
+  // 在应用启动时预加载，避免组件首次使用时的异步加载延迟
+  try {
+    const { installVisualForm } = await import('#/core/plugins/visual-form');
+    await installVisualForm(app);
+  } catch (e) {
+    console.warn('[VisualForm] 预加载失败，将在组件使用时重试:', e);
+  }
+
   // 预加载站点配置（阻塞，确保登录页品牌信息就绪）
   // 登录前/登录后同源：GET /system/config/code/site_setting
   const { useSiteConfigStore } = await import('#/store/modules/site-config');
