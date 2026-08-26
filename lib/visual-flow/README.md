@@ -13,7 +13,7 @@
 
 ## 特性
 
-- 零 UI 框架依赖：内置自研组件（抽屉/弹窗/表单/下拉/提示/JSON 查看器），不依赖 ant-design-vue / element-plus / vue-json-pretty
+- 零 UI 框架依赖：内置自研 FD 组件族（抽屉/弹窗/表单/下拉/提示/JSON 查看器），不依赖 ant-design-vue / element-plus / vue-json-pretty
 - 双模式渲染：`mode="canvas" | "dingtalk"`，同一组件入口切换
 - 补全内置工作流属性：流程级 +8（字段权限/关联业务表/持久化模式/发起时选人/选人接口/抄送人/申请理由/附件）、任务级 +6（候选用户/候选用户组/候选用户处理类/会签类型/会签完成条件/操作按钮）
 - 会签角标与成员进度回显、空流程默认初始化、移动端自适应
@@ -283,6 +283,19 @@ document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
 | node-click | 节点点击事件 | ({ data, patternItem, lf }) => void |
 | edge-click | 边点击事件 | ({ data, patternItem, lf }) => void |
 
+## 演示站
 
+`examples/` 内置多个业务场景 case（首页画布/钉钉基础演示、vben5 process-drawer 风格、节点 API 操作、钉钉预览模式、会签进度回显、二次开发能力、**二开文档示例**（自定义节点 SVG/HTML/Vue + 自定义边 + render 表单）），并支持移动端 375px 预览。运行 `npm run dev` 后通过顶部导航切换，也可用 `#/case-key` hash 直达。
 
+---
 
+## 二次开发
+
+详细二开文档见 [`docs/二次开发指南.md`](docs/二次开发指南.md)，涵盖：
+
+- 架构总览（双模式、目录、数据流）
+- 自定义节点（SVG / HTML / Vue）/ 自定义边 / 自定义表单（含 render）/ 自定义控制面板
+- 事件系统、钉钉模式 `FDDesignerAPI`、主题适配、查看模式
+- 常见二次开发场景速查、注意事项
+
+> 该文档会随 `npm run build:lib` 复制进 `lib/docs/`，业务工程在 `node_modules/visual-flow/docs/` 下即可查看。
