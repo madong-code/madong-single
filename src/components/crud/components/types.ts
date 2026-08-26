@@ -272,6 +272,16 @@ export interface TreeConfig {
   children?: string;
   /** 刷新后是否保持展开状态，默认 false */
   reserve?: boolean;
+  /**
+   * 是否启用懒加载树（展开节点时按 pid 异步加载子级）
+   * 启用后分页不禁用，顶层走分页查询，子级由 loadMethod 加载
+   */
+  lazy?: boolean;
+  /**
+   * 懒加载回调：展开节点时调用，应返回该节点的直接子级数组
+   * 签名 (params: { row: Record<string, any> }) => Promise<any[]>
+   */
+  loadMethod?: (params: { row: Record<string, any> }) => Promise<any[]>;
 }
 
 /**
