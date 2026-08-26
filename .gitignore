@@ -63,6 +63,14 @@ datalog
 debug-*.md
 .gitkit
 
+# lib 构建产物 / 备份 / source map
+lib/**/*.map
+lib/**/*.bak
+
+# 敏感 / 本地调试脚本与凭据
+login.yaml
+scripts/
+
 # 本地插件：整个 plugin 目录不入库（避免泄漏），仅 demo 插件除外
 src/plugin/*
 !src/plugin/demo/
