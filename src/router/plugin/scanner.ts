@@ -1,5 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router';
 
+import { preferences } from '#/core/preferences';
+
 /**
  * 统一插件路由扫描器
  * 一次性扫描所有插件路由，分别缓存前端和后端格式路由
@@ -20,6 +22,19 @@ export class PluginRouteScanner {
         eager: false,
       });
     }
+  }
+
+  /**
+   * 是否启用插件静态路由（来自插件 routes/index.ts 的前/后端格式路由）
+   * 仅在「前端模式」或「开发环境」下启用：
+   *  - frontend 模式：前端静态路由是权威来源，必须扫描
+   *  - 开发环境：便于本地开发调试插件，且不会与后端部署冲突
+   *  - backend/mixed 模式 + 生产：由后端返回的菜单作为权威来源，
+   *    若再静态合并插件路由会与后端返回的同名路由冲突，故跳过
+   */
+  private isPluginStaticEnabled(): boolean {
+    if (this.isDev) return true;
+    return preferences.app.accessMode === 'frontend';
   }
 
   /**
@@ -141,18 +156,33 @@ export class PluginRouteScanner {
     const frontendRoutes: RouteRecordRaw[] = [];
     const backendRoutes: any[] = [];
 
-    // 扫描所有插件路由文件
+    // 扫描所有插件路由文件（受模式控制：仅前端模式或开发环境启用）
     const pluginRouteModules = import.meta.glob(
       '../../plugin/**/routes{.ts,/index.ts}',
       { eager: true },
     );
 
-    // 扫描 routes/backend.ts 中的后端模式路由
+    // 扫描 routes/backend.ts 中的后端模式路由（框架固有路由，始终收集）
     const backendModeRouteModules = import.meta.glob('../routes/backend.ts', {
       eager: true,
     });
 
+    // 仅在「前端模式」或「开发环境」下收集插件静态路由，
+    // 避免 backend/mixed 模式 + 生产环境时与后端返回的路由冲突
+    const pluginStaticEnabled = this.isPluginStaticEnabled();
+
     Object.entries(pluginRouteModules).forEach(([filePath, module]) => {
+      if (!pluginStaticEnabled) {
+        if (this.isDev) {
+          const pluginName = filePath
+            .replace('../../plugin/', '')
+            .split('/')[0];
+          console.warn(
+            `[PluginScanner] ⏭️  跳过插件 ${pluginName} 静态路由（当前为后端模式且非开发环境，路由以后端返回为准）`,
+          );
+        }
+        return;
+      }
       try {
         // 从路径提取插件名，比如 '../../plugin/demo/routes.ts' → 'demo'
         const pluginName = filePath.replace('../../plugin/', '').split('/')[0];

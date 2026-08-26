@@ -79,6 +79,7 @@
     "json-bigint": "catalog:",
     "lodash.clonedeep": "catalog:",
     "lucide-vue-next": "catalog:",
+    "mitt": "^3.0.1",
     "nprogress": "catalog:",
     "pinia": "catalog:",
     "pinia-plugin-persistedstate": "catalog:",

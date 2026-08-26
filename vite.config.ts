@@ -64,6 +64,9 @@ export default defineConfig(async () => {
             rewrite: (path) => path.replace(/^\/adminapi/, ''),
             target: 'http://127.0.0.1:8500/adminapi',
             ws: true,
+            // 无超时限制，支持大文件下载
+            timeout: 0,
+            proxyTimeout: 0,
           },
           '/upload': {
             changeOrigin: true,

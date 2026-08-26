@@ -134,13 +134,21 @@ export const useTabbarStore = defineStore('core-tabbar', {
       if (!tab.key) {
         tab.key = getTabKey(routeTab);
       }
-      if (!isTabShown(tab)) {
-        return tab;
-      }
 
       const tabIndex = this.tabs.findIndex((item) => {
         return equalTab(item, tab);
       });
+
+      // 如果标签页已存在但当前路由标记为 hideInTab，则移除标签页
+      if (tabIndex !== -1 && !isTabShown(tab)) {
+        this.tabs.splice(tabIndex, 1);
+        this.updateCacheTabs();
+        return tab;
+      }
+
+      if (!isTabShown(tab)) {
+        return tab;
+      }
 
       if (tabIndex === -1) {
         const maxCount = preferences.tabbar.maxCount;
