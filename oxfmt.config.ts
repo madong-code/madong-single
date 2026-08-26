@@ -24,5 +24,6 @@ export default defineConfig({
     'skills-lock.json',
     'lib/**',
     'src/utils/push/push-vue.js',
+    'src/plugin/**',
   ],
 });
