@@ -34,7 +34,7 @@ function useMixedMenu() {
     }
     return enableSidebar;
   });
-  const menus = computed(() => accessStore.accessMenus);
+  const menus = computed(() => accessStore.menusWithBadges);
 
   /**
    * 头部菜单

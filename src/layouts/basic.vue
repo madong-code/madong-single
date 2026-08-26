@@ -9,7 +9,11 @@ import { BookOpenText, CircleHelp, SvgGithubIcon } from '#/core/design/icons';
 import { BasicLayout, LockScreen, UserDropdown } from '#/core/layouts';
 import { preferences, usePreferences } from '#/core/preferences';
 import { openWindow } from '#/core/shared';
-import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '#/core/shared/constants';
+import {
+  VBEN_DOC_URL,
+  VBEN_GITHUB_URL,
+  LOGIN_PATH,
+} from '#/core/shared/constants';
 import { useAccessStore, useUserStore } from '#/core/stores';
 import { AuthenticationLoginExpiredModal } from '#/core/ui/common';
 import { $t } from '#/locales';
@@ -95,7 +99,13 @@ const avatar = computed(() => {
 });
 
 async function handleLogout() {
-  await authStore.logout(false);
+  try {
+    await authStore.logout(false);
+  } catch {
+    // 忽略错误
+  }
+  // 强制跳转到登录页（兜底，防止 authStore.logout 内部导航失败）
+  window.location.replace(LOGIN_PATH);
 }
 
 watch(

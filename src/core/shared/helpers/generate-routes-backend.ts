@@ -137,6 +137,29 @@ function convertRoutes(
       console.error('[RouteGenerator] Route name is required', route);
     }
 
+    // 将后端根级 badge 字段映射到 meta (snake_case → camelCase)
+    // 后端返回: badge, badge_type, badge_variants 在根级别
+    // generateMenus() 从 meta.badge, meta.badgeType, meta.badgeVariants 读取
+    const rawBadge = node.badge;
+    const rawBadgeType = (node as any).badge_type;
+    const rawBadgeVariants = (node as any).badge_variants;
+    if (
+      rawBadge !== undefined ||
+      rawBadgeType !== undefined ||
+      rawBadgeVariants !== undefined
+    ) {
+      route.meta = route.meta || ({} as any);
+      if (rawBadge !== undefined) {
+        route.meta.badge = String(rawBadge);
+      }
+      if (rawBadgeType !== undefined) {
+        route.meta.badgeType = rawBadgeType;
+      }
+      if (rawBadgeVariants !== undefined) {
+        route.meta.badgeVariants = rawBadgeVariants;
+      }
+    }
+
     // 无component但有子路由：自动使用 RouterView 作为容器
     if (!component && route.children && route.children.length > 0) {
       route.component = layoutMap.RouteView;
@@ -307,6 +330,16 @@ function resolveComponentPath(
   // 根路径
   if (component.startsWith('/')) {
     const cleanPath = component.replace(/^\//, '');
+    // 处理以 /plugin/ 开头但带前导斜杠的情况（后端菜单常返回 /plugin/...）
+    if (cleanPath.startsWith('plugin/')) {
+      const parts = cleanPath.split('/');
+      const mod = parts[1] || module || 'unknown';
+      return {
+        path: `/plugins/${parts.slice(1).join('/')}`,
+        module: mod,
+        template: parts.slice(3).join('/'),
+      };
+    }
     if (module) {
       return {
         path: `/plugins/${module}/views/${cleanPath}`,

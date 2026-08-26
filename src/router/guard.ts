@@ -1,12 +1,16 @@
 import type { Router } from 'vue-router';
 
 import { getAccessCodesApi } from '#/api';
+import { useMenuBadgePush } from '#/core/ui/menu/hooks';
 import { preferences } from '#/core/preferences';
 import { startProgress, stopProgress } from '#/core/shared';
 import { LOGIN_PATH } from '#/core/shared/constants';
 import { useAccessStore, useUserStore } from '#/core/stores';
 import { accessRoutes, coreRouteNames } from '#/router/routes';
 import { useAuthStore } from '#/store';
+
+import { extractBadgesFromMenus } from '#/core/utils/merge-menu-badges';
+import { useMenuBadgeStore } from '#/core/stores/modules/menu-badge';
 
 import { generateAccess } from './access';
 
@@ -115,6 +119,17 @@ function setupAccessGuard(router: Router) {
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
+
+    // 从菜单数据中提取徽标信息，初始化 badge store
+    const badgeStore = useMenuBadgeStore();
+    const badgeMap = extractBadgesFromMenus(accessibleMenus);
+    if (Object.keys(badgeMap).length > 0) {
+      badgeStore.initBadges(badgeMap);
+    }
+
+    // 初始化菜单徽标 WebSocket 推送
+    useMenuBadgePush();
+
     const redirectPath = (from.query.redirect ??
       (to.path === preferences.app.defaultHomePath
         ? userInfo.homePath || preferences.app.defaultHomePath

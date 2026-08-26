@@ -4,6 +4,12 @@ import type { MenuRecordRaw } from '#/core/shared/types/base';
 
 import { acceptHMRUpdate, defineStore } from 'pinia';
 
+import {
+  extractBadgesFromMenus,
+  mergeMenuBadges,
+} from '#/core/utils/merge-menu-badges';
+import { useMenuBadgeStore } from './menu-badge';
+
 type AccessToken = null | string;
 
 interface AccessState {
@@ -86,6 +92,10 @@ export const useAccessStore = defineStore('core-access', {
     },
     setAccessMenus(menus: MenuRecordRaw[]) {
       this.accessMenus = menus;
+      // 初始化徽标数据：从后端菜单中提取徽标
+      const badgeStore = useMenuBadgeStore();
+      const badgeMap = extractBadgesFromMenus(menus);
+      badgeStore.initBadges(badgeMap);
     },
     setAccessRoutes(routes: RouteRecordRaw[]) {
       this.accessRoutes = routes;
@@ -105,6 +115,17 @@ export const useAccessStore = defineStore('core-access', {
     unlockScreen() {
       this.isLockScreen = false;
       this.lockScreenPassword = undefined;
+    },
+  },
+  getters: {
+    /**
+     * 合并徽标后的菜单树
+     * 将 badge store 中的实时徽标数据合并到菜单中
+     */
+    menusWithBadges: (state) => {
+      const badgeStore = useMenuBadgeStore();
+      const badgeMap = { ...badgeStore.badges, ...badgeStore.parentBadges };
+      return mergeMenuBadges(state.accessMenus, badgeMap);
     },
   },
   persist: {

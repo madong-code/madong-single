@@ -15,7 +15,9 @@ function useExtraMenu(useRootMenus?: ComputedRef<MenuRecordRaw[]>) {
   const accessStore = useAccessStore();
   const { navigation, willOpenedByWindow } = useNavigation();
 
-  const menus = computed(() => useRootMenus?.value ?? accessStore.accessMenus);
+  const menus = computed(
+    () => useRootMenus?.value ?? accessStore.menusWithBadges,
+  );
 
   /** 记录当前顶级菜单下哪个子菜单最后激活 */
   const defaultSubMap = new Map<string, string>();
