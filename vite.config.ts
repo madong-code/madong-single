@@ -2,6 +2,8 @@ import { fileURLToPath, URL } from 'node:url';
 
 import ElementPlus from 'unplugin-element-plus/vite';
 
+import { loadEnv } from 'vite';
+
 import { defineConfig } from './build/vite';
 import { viteVisualFormElementPlusPlugin } from './build/vite/plugins/visual-form';
 
@@ -36,7 +38,41 @@ const VISUAL_FORM_UMD_PATH = fileURLToPath(
   new URL('lib/visual-form/designer.umd.js', import.meta.url),
 );
 
-export default defineConfig(async () => {
+export default defineConfig(async (config) => {
+  // VITE_NITRO_MOCK=true 时接口代理到本地 Nitro mock（5320），否则代理到真实后端（8500）
+  const env = loadEnv(config.mode ?? 'development', process.cwd());
+  const useMock = (env.VITE_NITRO_MOCK ?? 'true') !== 'false';
+  const apiProxy = useMock
+    ? {
+        // mock 服务路径自带 /adminapi 前缀，无需 rewrite
+        '/adminapi': {
+          changeOrigin: true,
+          target: 'http://localhost:5320',
+          ws: true,
+          timeout: 0,
+          proxyTimeout: 0,
+        },
+        '/upload': {
+          changeOrigin: true,
+          target: 'http://localhost:5320',
+        },
+      }
+    : {
+        '/adminapi': {
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/adminapi/, ''),
+          target: 'http://127.0.0.1:8500/adminapi',
+          ws: true,
+          // 无超时限制，支持大文件下载
+          timeout: 0,
+          proxyTimeout: 0,
+        },
+        '/upload': {
+          changeOrigin: true,
+          target: 'http://127.0.0.1:8500',
+        },
+      };
+
   return {
     application: {},
     vite: {
@@ -58,21 +94,7 @@ export default defineConfig(async () => {
         },
       },
       server: {
-        proxy: {
-          '/adminapi': {
-            changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/adminapi/, ''),
-            target: 'http://127.0.0.1:8500/adminapi',
-            ws: true,
-            // 无超时限制，支持大文件下载
-            timeout: 0,
-            proxyTimeout: 0,
-          },
-          '/upload': {
-            changeOrigin: true,
-            target: 'http://127.0.0.1:8500',
-          },
-        },
+        proxy: apiProxy,
         watch: {
           ignored: ['**/.dbg/**', '**/tooling/mock/.nitro/**'],
         },
