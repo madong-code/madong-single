@@ -83,6 +83,16 @@ export default defineConfig(async (config) => {
         ElementPlus({
           format: 'esm',
         }),
+        {
+          name: 'strip-sourcemap-url',
+          enforce: 'post',
+          transform(code, id) {
+            if (id.endsWith('.js') || id.endsWith('.cjs') || id.endsWith('.css')) {
+              return code.replace(/\/\/# sourceMappingURL=\S+\s*$/gm, '');
+            }
+            return null;
+          },
+        },
       ],
       optimizeDeps: {
         include: ELEMENT_PLUS_STYLE_DEPS,

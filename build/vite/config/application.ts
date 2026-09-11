@@ -42,7 +42,7 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
       nitroMockOptions: {},
       print: !isBuild,
       printInfoMap: {
-        'MaDong-Admin Docs': 'https://madong.tech/docs/framework',
+        'MaDong Docs': 'https://madong.tech/docs/framework',
       },
       pwa: true,
       pwaOptions: getDefaultPwaOptions(appTitle),

@@ -80,17 +80,22 @@
 
 .fade-slide-leave-active,
 .fade-slide-enter-active {
-  transition: all 0.3s;
+  /* 不能使用 transition: all —— all 会在页面元素存在其他属性变化时
+     触发意料之外的 transitionend / 长尾过渡，配合 <Transition mode="out-in">
+     会导致 SPA 切换路由时 enter 阶段永久挂起（主内容区空白）。 */
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 
 .fade-slide-enter-from {
   opacity: 0;
-  transform: translate(-30px);
+  transform: translateX(-30px);
 }
 
 .fade-slide-leave-to {
   opacity: 0;
-  transform: translate(30px);
+  transform: translateX(30px);
 }
 
 .fade-down-enter-active,

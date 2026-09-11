@@ -26,4 +26,14 @@ export const overridesPreferences = defineOverridesPreferences({
   theme: {
     mode: 'light',
   },
+  /**
+   * 页面切换过渡默认关闭：
+   * 定制布局（content.vue 的 domCached 分支 + RouteView 分组容器）下，
+   * <Transition mode="out-in"> 在 SPA 首次切换到懒加载页面时 enter 阶段
+   * 会永久挂起（主内容区空白），表现为导航跳转对应的模块全部不可用。
+   * 关闭过渡后路由切换为直接挂载，功能优先；如需动画需先修复过渡链路。
+   */
+  transition: {
+    enable: false,
+  },
 });
