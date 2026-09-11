@@ -3,6 +3,9 @@ import type {
   GenerateMenuAndRoutesOptions,
 } from '#/core/shared/types';
 
+import { defineComponent, h } from 'vue';
+import { RouterView } from 'vue-router';
+
 import { ElMessage } from 'element-plus';
 
 import { getAllMenusApi } from '#/api';
@@ -13,8 +16,19 @@ import { $t } from '#/locales';
 
 import pluginRouter from './plugin';
 
-/** RouteView：路由分组容器，仅渲染子路由的 router-view */
-const RouteView = () => import('vue-router').then((m) => m.RouterView);
+/**
+ * RouteView：路由分组容器，仅渲染子路由的 router-view。
+ *
+ * 必须使用静态函数式包装，不能用 `() => import('vue-router').then(m => m.RouterView)` 异步包装：
+ * 异步包装解析后 KeepAlive 会直接缓存 RouterView（vue-router 弃用用法），
+ * 导致 SPA 切换路由时嵌套视图不渲染（页面空白）甚至渲染进程挂起。
+ */
+const RouteView = defineComponent({
+  name: 'RouteView',
+  setup() {
+    return () => h(RouterView);
+  },
+});
 
 /** 无权限时显示的 403 组件 */
 const FORBIDDEN_COMPONENT = () =>

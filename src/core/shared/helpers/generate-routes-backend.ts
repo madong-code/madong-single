@@ -212,7 +212,7 @@ function findMatchingComponent(
   // 模块级模糊匹配
   if (result.module) {
     const moduleFiles = Object.keys(pageMap).filter((key) =>
-      key.includes(`/plugins/${result.module}/`),
+      key.includes(`/plugin/${result.module}/`),
     );
 
     if (moduleFiles.length > 0) {
@@ -246,11 +246,11 @@ function findMatchingComponent(
  * 解析组件路径（支持多种格式）
  *
  * 优先级:
- * 1. 最简写法: about/test + meta.module → /plugins/{module}/views/about/test
- * 2. 冒号简写: demo:about/test → /plugins/demo/views/about/test
- * 3. 插件路径: plugin/demo/views/about/test → /plugins/demo/views/about/test
+ * 1. 最简写法: about/test + meta.module → /plugin/{module}/views/about/test
+ * 2. 冒号简写: demo:about/test → /plugin/demo/views/about/test
+ * 3. 插件路径: plugin/demo/views/about/test → /plugin/demo/views/about/test
  * 4. 模板路径: template/crud/list → /templates/crud/list
- * 5. 视图路径: views/about/test → /about/test 或 /plugins/{module}/views/about/test
+ * 5. 视图路径: views/about/test → /about/test 或 /plugin/{module}/views/about/test
  * 6. 直接路径: /dashboard/workspace
  */
 function resolveComponentPath(
@@ -267,7 +267,7 @@ function resolveComponentPath(
   // ⭐ 最简写法：通过 meta.module 定位插件
   if (module && isSimplePath(component)) {
     return {
-      path: `/plugins/${module}/views/${component}`,
+      path: `/plugin/${module}/views/${component}`,
       module,
       template: component,
     };
@@ -287,7 +287,7 @@ function resolveComponentPath(
   if (component.includes(':')) {
     const [mod, templatePath] = component.split(':', 2);
     return {
-      path: `/plugins/${mod}/views/${templatePath}`,
+      path: `/plugin/${mod}/views/${templatePath}`,
       module: mod,
       template: templatePath,
     };
@@ -298,7 +298,7 @@ function resolveComponentPath(
     const parts = component.split('/');
     const mod = parts[1] || module || 'unknown';
     return {
-      path: `/plugins/${parts.slice(1).join('/')}`,
+      path: `/plugin/${parts.slice(1).join('/')}`,
       module: mod,
       template: parts.slice(3).join('/'),
     };
@@ -308,7 +308,7 @@ function resolveComponentPath(
   if (component.startsWith('views/plugins/')) {
     const modMatch = component.match(/views\/plugins\/([^/]+)/);
     return {
-      path: component.replace(/^views/, ''),
+      path: component.replace(/^views\/plugins\//, '/plugin/'),
       module: modMatch ? modMatch[1] : module,
       template: component,
     };
@@ -319,7 +319,7 @@ function resolveComponentPath(
     const cleanPath = component.replace(/^views\//, '');
     if (module) {
       return {
-        path: `/plugins/${module}/views/${cleanPath}`,
+        path: `/plugin/${module}/views/${cleanPath}`,
         module,
         template: cleanPath,
       };
@@ -335,14 +335,14 @@ function resolveComponentPath(
       const parts = cleanPath.split('/');
       const mod = parts[1] || module || 'unknown';
       return {
-        path: `/plugins/${parts.slice(1).join('/')}`,
+        path: `/plugin/${parts.slice(1).join('/')}`,
         module: mod,
         template: parts.slice(3).join('/'),
       };
     }
     if (module) {
       return {
-        path: `/plugins/${module}/views/${cleanPath}`,
+        path: `/plugin/${module}/views/${cleanPath}`,
         module,
         template: cleanPath,
       };

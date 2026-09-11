@@ -37,10 +37,18 @@ async function generateAccessible(
   // 动态添加到router实例内
   accessibleRoutes.forEach((route) => {
     if (root && !route.meta?.noBasicLayout) {
-      // 为了兼容之前的版本用法，如果包含子路由，则将component移除，以免出现多层BasicLayout
-      // 如果你的项目已经跟进了本次修改，移除了所有自定义菜单首级的BasicLayout，可以将这段if代码删除
-      if (route.children && route.children.length > 0) {
-        delete route.component;
+      // 兼容旧版整树布局写法：顶层路由组件为 BasicLayout 时与根布局重复嵌套。
+      // 注意：不能直接 delete route.component —— 分组记录一旦没有 component，
+      // RouterView 在 depth1 解析不到组件（Component 为 undefined），
+      // SPA 导航到该分组下任意子页面时视图链断裂（主内容区空白）。
+      // 正确做法是替换为分组容器 RouteView：既避免布局嵌套，又保证嵌套视图正常渲染。
+      if (
+        route.children &&
+        route.children.length > 0 &&
+        options.layoutMap?.BasicLayout &&
+        route.component === options.layoutMap.BasicLayout
+      ) {
+        route.component = options.layoutMap.RouteView;
       }
       // 根据router name判断，如果路由已经存在，则不再添加
       if (names?.includes(route.name)) {
