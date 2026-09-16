@@ -31,14 +31,13 @@ const formSchema = computed((): VbenFormSchema[] => {
       label: $t('authentication.password'),
       rules: z.string().min(1, { message: $t('authentication.passwordTip') }),
     },
-    // 临时注释滑块验证以测试工作流功能
-    // {
-    //   component: markRaw(SliderCaptcha),
-    //   fieldName: 'captcha',
-    //   rules: z.boolean().refine((value) => value, {
-    //     message: $t('authentication.verifyRequiredTip'),
-    //   }),
-    // },
+    {
+      component: markRaw(SliderCaptcha),
+      fieldName: 'captcha',
+      rules: z.boolean().refine((value) => value, {
+        message: $t('authentication.verifyRequiredTip'),
+      }),
+    },
   ];
 });
 </script>
