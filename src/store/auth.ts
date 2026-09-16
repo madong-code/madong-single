@@ -10,6 +10,7 @@ import { preferences } from '#/core/preferences';
 import { LOGIN_PATH } from '#/core/shared/constants';
 import { resetAllStores, useAccessStore, useUserStore } from '#/core/stores';
 import { useSiteConfigStore } from '#/store/modules/site-config';
+import { buildAppUrl } from '#/utils/url';
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore();
@@ -96,7 +97,8 @@ export const useAuthStore = defineStore('auth', () => {
       : LOGIN_PATH;
 
     // 5. 使用硬跳转确保一定到达登录页（绕过路由守卫和 persist 插件的竞态问题）
-    window.location.assign(loginUrl);
+    //    必须经 buildAppUrl 拼上部署 base（如 /admin/），否则子目录部署会 404
+    window.location.assign(buildAppUrl(loginUrl));
   }
 
   async function fetchUserInfo() {
