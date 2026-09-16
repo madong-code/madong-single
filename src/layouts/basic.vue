@@ -5,19 +5,19 @@ import { useRouter } from 'vue-router';
 import { Bell, FileText, TerminalSquare } from 'lucide-vue-next';
 
 import { useWatermark } from '#/core/composables';
-import { BookOpenText, CircleHelp, SvgGithubIcon } from '#/core/design/icons';
+import { BookOpenText, CircleHelp, SvgGiteeIcon } from '#/core/design/icons';
 import { BasicLayout, LockScreen, UserDropdown } from '#/core/layouts';
 import { preferences, usePreferences } from '#/core/preferences';
 import { openWindow } from '#/core/shared';
 import {
-  VBEN_DOC_URL,
-  VBEN_GITHUB_URL,
   LOGIN_PATH,
 } from '#/core/shared/constants';
 import { useAccessStore, useUserStore } from '#/core/stores';
 import { AuthenticationLoginExpiredModal } from '#/core/ui/common';
 import { $t } from '#/locales';
 import { useAuthStore, useNotifyStore, useTerminalStore } from '#/store';
+import { WEB_LINKS } from '#/utils/constants/links';
+import { buildAppUrl } from '#/utils/url';
 import LoginForm from '#/views/_core/authentication/login.vue';
 import MessageDrawer from '#/views/content/message/notify/components/message-drawer.vue';
 import NotepadDrawer from '#/views/content/notepad/components/notepad-drawer.vue';
@@ -67,7 +67,7 @@ const menus = computed(() => [
   },
   {
     handler: () => {
-      openWindow(VBEN_DOC_URL, {
+      openWindow(WEB_LINKS.DOCS, {
         target: '_blank',
       });
     },
@@ -76,16 +76,16 @@ const menus = computed(() => [
   },
   {
     handler: () => {
-      openWindow(VBEN_GITHUB_URL, {
+      openWindow(WEB_LINKS.GITEE, {
         target: '_blank',
       });
     },
-    icon: SvgGithubIcon,
-    text: 'GitHub',
+    icon: SvgGiteeIcon,
+    text: 'Gitee',
   },
   {
     handler: () => {
-      openWindow(`${VBEN_GITHUB_URL}/issues`, {
+      openWindow(WEB_LINKS.ASK, {
         target: '_blank',
       });
     },
@@ -98,6 +98,21 @@ const avatar = computed(() => {
   return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
 });
 
+// 后端返回 snake_case 字段（real_name/user_name），此处做 camelCase 兼容兜底
+const userInfo = computed(() => userStore.userInfo as null | Record<string, any>);
+const displayName = computed(
+  () =>
+    userInfo.value?.realName ||
+    userInfo.value?.real_name ||
+    userInfo.value?.username ||
+    userInfo.value?.user_name ||
+    '',
+);
+const userTag = computed(
+  () => userInfo.value?.username || userInfo.value?.user_name || '',
+);
+const userEmail = computed(() => userInfo.value?.email || '');
+
 async function handleLogout() {
   try {
     await authStore.logout(false);
@@ -105,7 +120,8 @@ async function handleLogout() {
     // 忽略错误
   }
   // 强制跳转到登录页（兜底，防止 authStore.logout 内部导航失败）
-  window.location.replace(LOGIN_PATH);
+  // 经 buildAppUrl 拼上部署 base（如 /admin/），避免子目录部署下 404
+  window.location.replace(buildAppUrl(LOGIN_PATH));
 }
 
 watch(
@@ -134,9 +150,7 @@ watch(
           ],
           type: 'linear',
         },
-        content:
-          content ||
-          `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}`,
+        content: content || displayName.value,
       });
     } else {
       destroyWatermark();
@@ -154,11 +168,9 @@ watch(
       <UserDropdown
         :avatar
         :menus
-        :text="userStore.userInfo?.realName"
-        :description="
-          userStore.userInfo?.email || userStore.userInfo?.username || ''
-        "
-        :tag-text="userStore.userInfo?.username || ''"
+        :text="displayName"
+        :description="userEmail"
+        :tag-text="userTag"
         @logout="handleLogout"
       />
     </template>

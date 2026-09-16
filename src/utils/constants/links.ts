@@ -6,24 +6,21 @@
  * @author Madong Team
  */
 export const WEB_LINKS = {
-  // Github 主页
-  GITHUB_HOME: 'https://gitee.com/liu_guan_qing',
+  // Gitee 组织主页
+  GITEE: 'https://gitee.com/motion-code',
 
-  // 项目 Github 主页
-  GITHUB: 'https://gitee.com/motion-code/madong-vue',
+  // 个人 Gitee 主页
+  GITEE_HOME: 'https://gitee.com/liu_guan_qing',
 
-  // 个人博客
-  BLOG: 'https://madong.tech/',
+  // 项目 Gitee 仓库
+  REPO: 'https://gitee.com/motion-code/madong-vue',
 
-  // 项目文档
-  DOCS: 'https://madong.tech/docs/framework',
+  // 官网 / 文档门户
+  DOCS: 'https://madong.tech/',
 
-  // 项目社区
-  COMMUNITY: 'https://madong.tech/',
+  // 问题与帮助（社区问答）
+  ASK: 'https://madong.tech/ask',
 
   // 个人 Bilibili 主页
   BILIBILI: '',
-
-  // 项目介绍
-  INTRODUCE: 'https://madong.tech/docs/framework/297061518217330688',
 };

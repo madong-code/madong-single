@@ -229,10 +229,10 @@ if (enableShortcutKey.value) {
             dot
             dot-class="bottom-0 right-1 border-2 size-4 bg-green-500"
           />
-          <div class="ml-2 w-full">
+          <div class="ml-2 w-full min-w-0">
             <div
               v-if="tagText || text || $slots.tagText"
-              class="mb-1 flex items-center text-sm font-medium text-foreground"
+              class="mb-1 flex flex-wrap items-center text-sm font-medium text-foreground"
             >
               {{ text }}
               <slot name="tagText">
@@ -241,7 +241,7 @@ if (enableShortcutKey.value) {
                 </Badge>
               </slot>
             </div>
-            <div class="text-xs font-normal text-muted-foreground">
+            <div class="break-all text-xs font-normal text-muted-foreground">
               {{ description }}
             </div>
           </div>
