@@ -19,8 +19,6 @@ export const useCrudSchema = (): CrudSchema => {
     hasView: false,
     hasRemove: false,
     permissions: {
-      add: 'upload:files:create',
-      edit: 'upload:files:update',
       remove: 'upload:files:delete',
       view: 'upload:files:read',
     },

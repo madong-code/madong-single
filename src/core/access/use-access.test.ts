@@ -20,16 +20,16 @@ describe('useAccess', () => {
     accessStore.setSuperCodes(['*', 'admin']);
     accessStore.setAccessCodes(['*']);
 
-    expect(useAccess().hasAccessByCodes(['system:user:create'])).toBe(true);
+    expect(useAccess().hasAccessByCodes(['system:admin:create'])).toBe(true);
   });
 
   it('still checks ordinary permission codes exactly', () => {
     const accessStore = useAccessStore();
     accessStore.setSuperCodes(['*', 'admin']);
-    accessStore.setAccessCodes(['system:user:read']);
+    accessStore.setAccessCodes(['system:admin:read']);
 
     const { hasAccessByCodes } = useAccess();
-    expect(hasAccessByCodes(['system:user:read'])).toBe(true);
-    expect(hasAccessByCodes(['system:user:create'])).toBe(false);
+    expect(hasAccessByCodes(['system:admin:read'])).toBe(true);
+    expect(hasAccessByCodes(['system:admin:create'])).toBe(false);
   });
 });

@@ -20,9 +20,6 @@ export const useCrudSchema = (): CrudSchema => {
     hasEdit: false,
     // 是否有详情
     hasView: false,
-    permissions: {
-      view: 'system:user_center:read',
-    },
     // 表格列定义
     columns: [
       // {
