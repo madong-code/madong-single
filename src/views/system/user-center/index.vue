@@ -292,23 +292,8 @@ const handlePwdEdit = async () => {
 
 const [BasicCrud, crudApi] = useCrud({
   ...useCrudSchema(),
-  // 左侧工具栏
-  toolbarActions: [
-    {
-      label: $t('system.files.list.table.columns.actions.delete.label'),
-      type: 'danger',
-      icon: 'ant-design:delete-outlined',
-      auth: 'system:files:delete',
-      ifShow: () => crudApi.getReadonlyState().selection.length > 0,
-      confirm: {
-        title: $t('system.files.list.table.columns.actions.delete.title'),
-        content: $t('system.files.list.table.columns.actions.delete.confirm'),
-        ok() {
-          crudApi.removeByApi({});
-        },
-      },
-    },
-  ],
+  // 左侧工具栏（在线设备列表无删除接口，仅支持下线）
+  toolbarActions: [],
   // 左侧栏工具-下拉菜单
   dropDownToolbarActions: [],
   // 表格行操作
