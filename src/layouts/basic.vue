@@ -203,7 +203,8 @@ watch(
       >
         <TerminalSquare class="size-[18px] text-foreground" />
       </div>
-      <TerminalDialog />
+      <!-- 终端弹窗仅超级管理员挂载，避免无权限时仍发起 commands/config 请求 -->
+      <TerminalDialog v-if="showTerminalButton" />
     </template>
 
     <!-- 记事本按钮（排在设置之后、终端之前，移动端隐藏） -->
