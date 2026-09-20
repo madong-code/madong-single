@@ -653,11 +653,8 @@ defineExpose(crudInstance);
         </slot>
       </template>
       <template #toolbar-tools>
-        <slot name="toolbar-tools" :actions="finalDropDownToolbarActions">
-          <TableAction
-            :actions="toolbarToolActions"
-            :drop-down-actions="finalDropDownToolbarActions"
-          />
+        <slot name="toolbar-tools" :actions="toolbarToolActions">
+          <TableAction :actions="toolbarToolActions" />
         </slot>
       </template>
       <template v-for="(_, name) in filteredSlots" #[name]="slotData">
