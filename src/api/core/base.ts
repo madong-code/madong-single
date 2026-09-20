@@ -86,14 +86,18 @@ function BaseService<_T = Record<string, any>>(options: BaseApiOptions) {
     },
 
     remove(
-      ids: (string | number)[] = [],
+      ids:
+        | (string | number)[]
+        | { ids?: (string | number)[]; [key: string]: any },
       extra: { key?: string } = {},
     ): Promise<any> {
       checkMethod('remove');
       const key = extra.key ?? 'ids';
-      return requestClient.delete(baseUrl, {
-        data: { [key]: ids },
-      });
+      // 兼容对象形式（CrudApiInstance.batchRemove 契约：remove({ ids: [...], ...pathParams })）
+      const data = Array.isArray(ids)
+        ? { [key]: ids }
+        : { ...ids, [key]: (ids as any)?.[key] ?? [] };
+      return requestClient.delete(baseUrl, { data });
     },
 
     delete(id: number | string, params?: Record<string, any>): Promise<any> {
