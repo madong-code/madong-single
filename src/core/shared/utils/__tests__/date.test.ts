@@ -66,6 +66,14 @@ describe('dateUtils', () => {
       const formatted = formatDate(sampleISO, 'YYYY-MM-DD HH:mm');
       expect(formatted).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/);
     });
+
+    it('should format second-level timestamps (10 digits) correctly', () => {
+      const seconds = Math.floor(sampleTimestamp / 1000);
+      const formatted = formatDate(seconds);
+      expect(formatted).toMatch(/2024-10-30/);
+      const formattedDateTime = formatDateTime(seconds);
+      expect(formattedDateTime).toMatch(/2024-10-30 \d{2}:\d{2}:\d{2}/);
+    });
   });
 
   // ===============================
