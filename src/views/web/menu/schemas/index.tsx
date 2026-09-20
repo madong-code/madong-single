@@ -48,7 +48,7 @@ export const useCrudSchema = (): CrudSchema => {
       remove: 'web:menu:delete',
       view: 'web:menu:read',
     },
-    tree: { id: 'id', pid: 'parent_id', children: 'children' },
+    tree: { id: 'id', pid: 'pid', children: 'children', reserve: true },
     beforeFetch: (params: any) => ({ ...params, page: 1, limit: 999 }),
     afterFetch: (res: any) => {
       const items = res?.items || [];
@@ -66,39 +66,49 @@ export const useCrudSchema = (): CrudSchema => {
       {
         field: 'category',
         title: $t('web.menu.table.columns.category'),
-        minWidth: 80,
-        viewComponent: 'ApiDict',
-        viewComponentProps: { code: DictEnum.WEB_MENU_CATEGORY },
+        minWidth: 110,
+        cellRender: {
+          name: 'CellDictTag',
+          attrs: { code: DictEnum.WEB_MENU_CATEGORY },
+        },
       },
       { field: 'url', title: $t('web.menu.table.columns.url'), minWidth: 100 },
       { field: 'sort', title: $t('web.menu.table.columns.sort'), minWidth: 80 },
       {
         field: 'type',
         title: $t('web.menu.table.columns.type'),
-        minWidth: 80,
-        viewComponent: 'ApiDict',
-        viewComponentProps: { code: DictEnum.WEB_MENU_TYPE },
+        minWidth: 100,
+        cellRender: {
+          name: 'CellDictTag',
+          attrs: { code: DictEnum.WEB_MENU_TYPE },
+        },
       },
       {
         field: 'target',
         title: $t('web.menu.table.columns.target'),
-        minWidth: 80,
-        viewComponent: 'ApiDict',
-        viewComponentProps: { code: DictEnum.WEB_MENU_TARGET },
+        minWidth: 100,
+        cellRender: {
+          name: 'CellDictTag',
+          attrs: { code: DictEnum.WEB_MENU_TARGET },
+        },
       },
       {
         field: 'is_show',
         title: $t('web.menu.table.columns.is_show'),
-        minWidth: 80,
-        viewComponent: 'ApiDict',
-        viewComponentProps: { code: DictEnum.SYS_YES_NO },
+        minWidth: 90,
+        cellRender: {
+          name: 'CellDictTag',
+          attrs: { code: DictEnum.SYS_YES_NO },
+        },
       },
       {
         field: 'enabled',
         title: $t('web.menu.table.columns.enabled'),
-        minWidth: 80,
-        viewComponent: 'ApiDict',
-        viewComponentProps: { code: DictEnum.SYS_ENABLED_STATUS },
+        minWidth: 90,
+        cellRender: {
+          name: 'CellDictTag',
+          attrs: { code: DictEnum.SYS_ENABLED_STATUS },
+        },
       },
     ],
 
@@ -125,13 +135,13 @@ export const useCrudSchema = (): CrudSchema => {
         },
         {
           component: 'Input',
-          fieldName: 'LINK_name',
+          fieldName: 'LIKE_name',
           label: $t('web.menu.table.search.name'),
           componentProps: { clearable: true },
         },
         {
           component: 'ApiDict',
-          fieldName: 'type',
+          fieldName: 'EQ_type',
           label: $t('web.menu.table.search.type'),
           componentProps: { code: DictEnum.WEB_MENU_TYPE, clearable: true },
         },
@@ -197,7 +207,11 @@ export const useCrudSchema = (): CrudSchema => {
           defaultValue: 1,
           rules: 'required',
           formItemClass: 'col-span-2',
-          componentProps: { code: DictEnum.WEB_MENU_TYPE },
+          componentProps: {
+            code: DictEnum.WEB_MENU_TYPE,
+            isBtn: true,
+            renderType: 'RadioGroup',
+          },
         },
         {
           fieldName: 'pid',
