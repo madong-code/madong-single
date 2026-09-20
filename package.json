@@ -48,6 +48,8 @@
         "@iconify/json": "catalog:",
         "@iconify/vue": "catalog:",
         "@intlify/core-base": "catalog:",
+        "@logicflow/core": "^2.2.5",
+        "@logicflow/extension": "^2.3.1",
         "@tanstack/vue-store": "catalog:",
         "@tiptap/core": "catalog:",
         "@tiptap/extension-document": "catalog:",
@@ -101,13 +103,13 @@
         "vxe-table": "catalog:",
         "watermark-js-plus": "catalog:",
         "zod": "catalog:",
-        "zod-defaults": "catalog:",
-        "@logicflow/core": "^2.2.1",
-        "@logicflow/extension": "^2.2.1"
+        "zod-defaults": "catalog:"
     },
     "devDependencies": {
         "@intlify/unplugin-vue-i18n": "catalog:",
         "@jspm/generator": "catalog:",
+        "@logicflow/core": "^2.2.1",
+        "@logicflow/extension": "^2.2.1",
         "@pnpm/workspace.read-manifest": "catalog:",
         "@tailwindcss/vite": "catalog:",
         "@tsdown/css": "catalog:",
@@ -165,10 +167,8 @@
         "vite-plugin-pwa": "catalog:",
         "vite-plugin-vue-devtools": "catalog:",
         "vitest": "catalog:",
-        "vue-tsc": "catalog:",
-        "@logicflow/core": "^2.2.1",
-        "@logicflow/extension": "^2.2.1",
-        "vue-json-pretty": "^2.4.0"
+        "vue-json-pretty": "^2.4.0",
+        "vue-tsc": "catalog:"
     },
     "engines": {
         "node": "^22.18.0 || ^24.0.0",
