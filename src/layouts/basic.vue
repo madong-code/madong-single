@@ -17,7 +17,7 @@ import { AuthenticationLoginExpiredModal } from '#/core/ui/common';
 import { $t } from '#/locales';
 import { useAuthStore, useNotifyStore, useTerminalStore } from '#/store';
 import { WEB_LINKS } from '#/utils/constants/links';
-import { buildAppUrl } from '#/utils/url';
+import { buildAppUrl, buildStaticUrl } from '#/utils/url';
 import LoginForm from '#/views/_core/authentication/login.vue';
 import MessageDrawer from '#/views/content/message/notify/components/message-drawer.vue';
 import NotepadDrawer from '#/views/content/notepad/components/notepad-drawer.vue';
@@ -95,7 +95,9 @@ const menus = computed(() => [
 ]);
 
 const avatar = computed(() => {
-  return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
+  const src = userStore.userInfo?.avatar;
+  // 头像可能是站点相对路径（/upload/...），云存储模式下需补全 CDN 域名，否则会打到前端站点域名而 404
+  return src ? buildStaticUrl(src) : preferences.app.defaultAvatar;
 });
 
 // 后端返回 snake_case 字段（real_name/user_name），此处做 camelCase 兼容兜底
