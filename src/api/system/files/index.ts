@@ -8,13 +8,38 @@ const baseUrl = '/system/files';
 export const FilesService = {
   ...BaseService<FilesRow>({ baseUrl }),
 
-  uploadFile(data: { file: File; sub_dir: string }) {
+  /** 图片上传（落到 sub_dir 子目录） */
+  uploadImage(data: { file: File; sub_dir: string }) {
     const formData = new FormData();
     formData.append('file', data.file);
     formData.append('sub_dir', data.sub_dir);
     return requestClient.post(`${baseUrl}/upload-image`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+  },
+
+  /** 附件上传（非图片文件） */
+  uploadAttachment(data: { file: File; sub_dir: string }) {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('sub_dir', data.sub_dir);
+    return requestClient.post(`${baseUrl}/upload-file`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  /** 远程图片 URL 拉取并保存到系统存储 */
+  fetchAndSaveImage(data: { sub_dir?: string; url: string }) {
+    return requestClient.post(`${baseUrl}/fetch-and-save-image`, data);
+  },
+
+  /**
+   * 删除附件（需当前登录管理员密码）
+   *
+   * 后端校验密码通过后删除记录，并同步清理对应的云 / 本地物理资源。
+   */
+  removeWithPassword(ids: (number | string)[], password: string) {
+    return requestClient.delete(baseUrl, { data: { ids, password } });
   },
 
   uploadImageBase64(data: any) {
