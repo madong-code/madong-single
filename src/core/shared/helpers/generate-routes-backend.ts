@@ -264,6 +264,17 @@ function resolveComponentPath(
 
   const { module } = meta || {};
 
+  // {module}/views/... 形态（可带前导斜杠）：首段为插件名，前端自动识别并精确定位
+  // （如 /report/views/log/index → /plugin/report/views/log/index）
+  const moduleViews = component.match(/^\/?([^/:]+)\/views\/(.+)$/);
+  if (moduleViews) {
+    return {
+      path: `/plugin/${component.replace(/^\//, '')}`,
+      module: moduleViews[1] || module,
+      template: moduleViews[2],
+    };
+  }
+
   // ⭐ 最简写法：通过 meta.module 定位插件
   if (module && isSimplePath(component)) {
     return {
