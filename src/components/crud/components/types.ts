@@ -420,6 +420,8 @@ export interface TableConfig {
   hasBatchRemove?: boolean;
   /** 操作按钮权限配置 */
   permissions?: TablePermissionConfig;
+  /** 无权限时按钮表现：hide=隐藏（默认，保持旧版行为）；disable=渲染但禁用，操作栏对齐 */
+  authMode?: 'disable' | 'hide';
   /** 表格列定义 */
   columns?: (() => CrudColumn[]) | CrudColumn[];
   /** 请求前处理参数 */
@@ -430,6 +432,8 @@ export interface TableConfig {
   tableActions?: ActionItem[];
   /** 表格行下拉操作 */
   dropDownActions?: ActionItem[];
+  /** 行操作平铺按钮上限，超出部分自动并入「更多」下拉（不设置则不限制） */
+  maxVisibleActions?: number;
   /** 工具栏操作按钮 */
   toolbarActions?: ActionItem[];
   /** 工具栏下拉操作按钮 */
