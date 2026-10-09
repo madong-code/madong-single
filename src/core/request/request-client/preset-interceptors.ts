@@ -27,7 +27,9 @@ export const defaultResponseInterceptor = ({
       }
 
       if (status >= 200 && status < 400) {
-        if (config.responseReturn === 'body') {
+        // 二进制响应（文件下载/预览）没有 code 信封，直接放行，
+        // 否则会落入 code 校验抛错 → 被通用错误提示误报"内部服务器错误"
+        if (responseData instanceof Blob || config.responseReturn === 'body') {
           return responseData;
         } else if (
           isFunction(successCode)
