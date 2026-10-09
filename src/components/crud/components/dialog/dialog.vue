@@ -336,6 +336,7 @@ defineExpose({
     v-if="options.dialogType !== 'drawer'"
     :title="dialogTitle"
     :class="dialogClass"
+    :content-class="dialogWidth"
   >
     <!-- 查看模式：使用 DetailViewer 详情组件 -->
     <DetailViewer
