@@ -52,6 +52,11 @@ export default defineConfig(async (config) => {
           timeout: 0,
           proxyTimeout: 0,
         },
+        // 支付插件用户端接口（如 mock 支付页 /api/pay/mock/paid，测试支付弹窗 iframe 内嵌使用）
+        '/api': {
+          changeOrigin: true,
+          target: 'http://localhost:5320',
+        },
         '/upload': {
           changeOrigin: true,
           target: 'http://localhost:5320',
@@ -66,6 +71,11 @@ export default defineConfig(async (config) => {
           // 无超时限制，支持大文件下载
           timeout: 0,
           proxyTimeout: 0,
+        },
+        // 后端 api 分组本身就是 /api 前缀，无需 rewrite
+        '/api': {
+          changeOrigin: true,
+          target: 'http://127.0.0.1:8500',
         },
         '/upload': {
           changeOrigin: true,
