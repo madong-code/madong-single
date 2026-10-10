@@ -1,6 +1,24 @@
-# MaDong Admin (Vue Vben Admin · Element Plus)
+<div align="center">
 
-A back-office front end rebuilt on **Vue Vben Admin `v5.7.0`** and adapted for the **MaDong 5.1+ backend**.
+<img src="https://raw.githubusercontent.com/madong-code/madong-admin/main/public/logo.png" alt="Madong Logo" width="120" />
+
+# MaDong Admin
+
+An admin front end rebuilt on **Vue Vben Admin `v5.7.0`**, adapted for the **MaDong 5.1+ backend**
+
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Element Plus](https://img.shields.io/badge/Element%20Plus-409EFF?logo=element&logoColor=white)](https://element-plus.org)
+[![Vben Admin](https://img.shields.io/badge/Vben%20Admin-5.7.0-0960BD)](https://github.com/vbenjs/vue-vben-admin)
+[![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+
+[![Docs](https://img.shields.io/badge/Docs-madong.tech-7C3AED)](https://madong.tech)
+[![Demo](https://img.shields.io/badge/Demo-v5.madong.tech-10B981)](http://v5.madong.tech/admin)
+
+[中文](./README.md) | **English**
+
+</div>
 
 - **Backend-ready**: API contracts are aligned with `adminapi` (response envelope, pagination, error codes, permission codes, SSE), so it connects directly to the MaDong 5.1+ Webman backend.
 - **Runs standalone**: ships a built-in Nitro Mock server (`tooling/mock`) that fully demonstrates login, menus, CRUD, dictionaries and code generation without any backend. Switching to a real backend only requires changing one environment variable.

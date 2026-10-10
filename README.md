@@ -1,6 +1,24 @@
-# MaDong Admin（Vue Vben Admin Element Plus）
+<div align="center">
 
-基于 Vue Vben Admin `v5.7.0` 重构、面向 **MaDong 5.1+ 后端** 适配的后台前端。
+<img src="https://raw.githubusercontent.com/madong-code/madong-admin/main/public/logo.png" alt="Madong Logo" width="120" />
+
+# MaDong Admin
+
+基于 Vue Vben Admin `v5.7.0` 重构、面向 **MaDong 5.1+ 后端** 适配的管理后台前端
+
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Element Plus](https://img.shields.io/badge/Element%20Plus-409EFF?logo=element&logoColor=white)](https://element-plus.org)
+[![Vben Admin](https://img.shields.io/badge/Vben%20Admin-5.7.0-0960BD)](https://github.com/vbenjs/vue-vben-admin)
+[![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+
+[![Docs](https://img.shields.io/badge/文档-madong.tech-7C3AED)](https://madong.tech)
+[![Demo](https://img.shields.io/badge/演示-v5.madong.tech-10B981)](http://v5.madong.tech/admin)
+
+**中文** | [English](./README.en.md)
+
+</div>
 
 - **后端适配**：接口契约与 `adminapi` 对齐（响应信封、分页、错误码、权限码、SSE），可直接对接 MaDong 5.1+ 的 Webman 后端。
 - **可独立运行**：内置 Nitro Mock 服务（`tooling/mock`），无后端也能完整演示登录、菜单、CRUD、字典、代码生成等全部页面；切换到真实后端只需改一个环境变量。
