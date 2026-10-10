@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router';
 import { Bell, FileText, TerminalSquare } from 'lucide-vue-next';
 
 import { useWatermark } from '#/core/composables';
-import { BookOpenText, CircleHelp, SvgGiteeIcon } from '#/core/design/icons';
+import { BookOpenText, CircleHelp, SvgGithubIcon } from '#/core/design/icons';
 import { BasicLayout, LockScreen, UserDropdown } from '#/core/layouts';
 import { preferences, usePreferences } from '#/core/preferences';
 import { openWindow } from '#/core/shared';
@@ -76,12 +76,12 @@ const menus = computed(() => [
   },
   {
     handler: () => {
-      openWindow(WEB_LINKS.GITEE, {
+      openWindow(WEB_LINKS.GITHUB, {
         target: '_blank',
       });
     },
-    icon: SvgGiteeIcon,
-    text: 'Gitee',
+    icon: SvgGithubIcon,
+    text: 'GitHub',
   },
   {
     handler: () => {

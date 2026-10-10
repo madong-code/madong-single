@@ -6,21 +6,12 @@
  * @author Madong Team
  */
 export const WEB_LINKS = {
-  // Gitee 组织主页
-  GITEE: 'https://gitee.com/motion-code',
+  // 项目 GitHub 仓库
+  GITHUB: 'https://github.com/madong-code/madong-admin',
 
-  // 个人 Gitee 主页
-  GITEE_HOME: 'https://gitee.com/liu_guan_qing',
-
-  // 项目 Gitee 仓库
-  REPO: 'https://gitee.com/motion-code/madong-vue',
-
-  // 官网 / 文档门户
-  DOCS: 'https://madong.tech/',
+  // 框架文档
+  DOCS: 'https://madong.tech/docs/framework',
 
   // 问题与帮助（社区问答）
-  ASK: 'https://madong.tech/ask',
-
-  // 个人 Bilibili 主页
-  BILIBILI: '',
+  ASK: 'https://madong.tech/forum',
 };
