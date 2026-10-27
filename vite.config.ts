@@ -66,7 +66,7 @@ export default defineConfig(async (config) => {
         '/adminapi': {
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/adminapi/, ''),
-          target: 'http://127.0.0.1:8501/adminapi',
+          target: 'http://127.0.0.1:8500/adminapi',
           ws: true,
           // 无超时限制，支持大文件下载
           timeout: 0,
@@ -75,11 +75,11 @@ export default defineConfig(async (config) => {
         // 后端 api 分组本身就是 /api 前缀，无需 rewrite
         '/api': {
           changeOrigin: true,
-          target: 'http://127.0.0.1:8501',
+          target: 'http://127.0.0.1:8500',
         },
         '/upload': {
           changeOrigin: true,
-          target: 'http://127.0.0.1:8501',
+          target: 'http://127.0.0.1:8500',
         },
       };
 
