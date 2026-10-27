@@ -8,23 +8,45 @@ const baseUrl = '/system/files';
 export const FilesService = {
   ...BaseService<FilesRow>({ baseUrl }),
 
-  /** 图片上传（落到 sub_dir 子目录） */
-  uploadImage(data: { file: File; sub_dir: string }) {
+  /** 图片上传（落到 sub_dir 子目录），可通过 onUploadProgress 获取百分比 */
+  uploadImage(data: {
+    file: File;
+    onUploadProgress?: (percent: number) => void;
+    sub_dir: string;
+  }) {
     const formData = new FormData();
     formData.append('file', data.file);
     formData.append('sub_dir', data.sub_dir);
     return requestClient.post(`${baseUrl}/upload-image`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (event) => {
+        if (event.total) {
+          data.onUploadProgress?.(
+            Math.round((event.loaded / event.total) * 100),
+          );
+        }
+      },
     });
   },
 
-  /** 附件上传（非图片文件） */
-  uploadAttachment(data: { file: File; sub_dir: string }) {
+  /** 附件上传（非图片文件），可通过 onUploadProgress 获取百分比 */
+  uploadAttachment(data: {
+    file: File;
+    onUploadProgress?: (percent: number) => void;
+    sub_dir: string;
+  }) {
     const formData = new FormData();
     formData.append('file', data.file);
     formData.append('sub_dir', data.sub_dir);
     return requestClient.post(`${baseUrl}/upload-file`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (event) => {
+        if (event.total) {
+          data.onUploadProgress?.(
+            Math.round((event.loaded / event.total) * 100),
+          );
+        }
+      },
     });
   },
 
