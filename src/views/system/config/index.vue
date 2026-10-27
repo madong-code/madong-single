@@ -32,6 +32,8 @@ const handleClick = (tab: TabsPaneContext) => {
 };
 
 const settingList = ref([
+  // 站点设置（site_setting）：ERP 后台管理系统自身的站点信息；
+  // web 前台门户站点设置在「基础管理 → 公共设置 → 网站设置 → 站点设置」（web_site_setting 行），两者分离存储
   {
     component: markRaw(
       defineAsyncComponent(() => import('./components/site.vue')),
@@ -40,22 +42,6 @@ const settingList = ref([
     name: $t('system.config.site.title'),
     loadKey: 0,
   },
-  // {
-  //   component: markRaw(
-  //     defineAsyncComponent(() => import('./components/web-site.vue')),
-  //   ),
-  //   key: '6',
-  //   name: $t('system.config.web_site.title'),
-  //   loadKey: 0,
-  // },
-  // {
-  //   component: markRaw(
-  //     defineAsyncComponent(() => import('./components/baidu-tongji.vue')),
-  //   ),
-  //   key: '7',
-  //   name: $t('system.config.baidu_tongji.title'),
-  //   loadKey: 0,
-  // },
   {
     component: markRaw(
       defineAsyncComponent(() => import('./components/upload.vue')),
