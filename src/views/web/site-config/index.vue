@@ -174,14 +174,20 @@ onMounted(loadConfig);
                 <ElInput
                   v-model="form.site_network_security"
                   maxlength="100"
-                  :placeholder="$t('web.site.placeholder.site_network_security')"
+                  :placeholder="
+                    $t('web.site.placeholder.site_network_security')
+                  "
                 />
               </ElFormItem>
-              <ElFormItem :label="$t('web.site.fields.site_network_security_url')">
+              <ElFormItem
+                :label="$t('web.site.fields.site_network_security_url')"
+              >
                 <ElInput
                   v-model="form.site_network_security_url"
                   maxlength="255"
-                  :placeholder="$t('web.site.placeholder.site_network_security_url')"
+                  :placeholder="
+                    $t('web.site.placeholder.site_network_security_url')
+                  "
                 />
               </ElFormItem>
 

@@ -9,9 +9,7 @@ import { BookOpenText, CircleHelp, SvgGithubIcon } from '#/core/design/icons';
 import { BasicLayout, LockScreen, UserDropdown } from '#/core/layouts';
 import { preferences, usePreferences } from '#/core/preferences';
 import { openWindow } from '#/core/shared';
-import {
-  LOGIN_PATH,
-} from '#/core/shared/constants';
+import { LOGIN_PATH } from '#/core/shared/constants';
 import { useAccessStore, useUserStore } from '#/core/stores';
 import { AuthenticationLoginExpiredModal } from '#/core/ui/common';
 import { $t } from '#/locales';
@@ -101,7 +99,9 @@ const avatar = computed(() => {
 });
 
 // 后端返回 snake_case 字段（real_name/user_name），此处做 camelCase 兼容兜底
-const userInfo = computed(() => userStore.userInfo as null | Record<string, any>);
+const userInfo = computed(
+  () => userStore.userInfo as null | Record<string, any>,
+);
 const displayName = computed(
   () =>
     userInfo.value?.realName ||

@@ -97,7 +97,11 @@ export default defineConfig(async (config) => {
           name: 'strip-sourcemap-url',
           enforce: 'post',
           transform(code, id) {
-            if (id.endsWith('.js') || id.endsWith('.cjs') || id.endsWith('.css')) {
+            if (
+              id.endsWith('.js') ||
+              id.endsWith('.cjs') ||
+              id.endsWith('.css')
+            ) {
               return code.replace(/\/\/# sourceMappingURL=\S+\s*$/gm, '');
             }
             return null;
