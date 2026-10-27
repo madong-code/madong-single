@@ -231,5 +231,6 @@ watch(
     <template #lock-screen>
       <LockScreen :avatar @to-login="handleLogout" />
     </template>
+    <!-- AI 助手悬浮按钮已随 ai 插件卸载移除：框架布局不得静态引用插件组件（插件功能应走注册制挂载） -->
   </BasicLayout>
 </template>
