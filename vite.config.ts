@@ -66,7 +66,7 @@ export default defineConfig(async (config) => {
         '/adminapi': {
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/adminapi/, ''),
-          target: 'http://127.0.0.1:8500/adminapi',
+          target: 'http://127.0.0.1:8501/adminapi',
           ws: true,
           // 无超时限制，支持大文件下载
           timeout: 0,
@@ -75,11 +75,11 @@ export default defineConfig(async (config) => {
         // 后端 api 分组本身就是 /api 前缀，无需 rewrite
         '/api': {
           changeOrigin: true,
-          target: 'http://127.0.0.1:8500',
+          target: 'http://127.0.0.1:8501',
         },
         '/upload': {
           changeOrigin: true,
-          target: 'http://127.0.0.1:8500',
+          target: 'http://127.0.0.1:8501',
         },
       };
 
@@ -116,7 +116,14 @@ export default defineConfig(async (config) => {
       server: {
         proxy: apiProxy,
         watch: {
-          ignored: ['**/.dbg/**', '**/tooling/mock/.nitro/**'],
+          ignored: [
+            '**/.dbg/**',
+            '**/tooling/mock/.nitro/**',
+            // 插件模板目录由后端在线安装/卸载动态增删（Windows 下 watcher 句柄
+            // 会阻塞目录重命名/删除并留下 delete-pending 幽灵目录），排除监听；
+            // 插件页面变更后手动刷新浏览器即可
+            '**/src/plugin/**',
+          ],
         },
       },
     },

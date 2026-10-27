@@ -81,6 +81,8 @@
         "json-bigint": "catalog:",
         "lodash.clonedeep": "catalog:",
         "lucide-vue-next": "catalog:",
+        "highlight.js": "^11.10.0",
+        "marked": "^12.0.2",
         "mitt": "^3.0.1",
         "nprogress": "catalog:",
         "pinia": "catalog:",

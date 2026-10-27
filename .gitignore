@@ -71,7 +71,5 @@ lib/**/*.bak
 login.yaml
 scripts/
 
-# 本地插件：整个 plugin 目录不入库（避免泄漏）
+# 插件前端为插件包安装产物，源码统一在 backend/plugin/*/resource 维护
 src/plugin/*
-
-
