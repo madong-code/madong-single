@@ -118,6 +118,10 @@ const dialogClass = computed(() => {
   if (props.options.class) cls.push(props.options.class);
   return cls.join(' ');
 });
+// 表单内容宽度：默认对半显示，可通过 options.formWidth 调整（如多列表单配 'w-full'）。
+// 注意：该宽度只作用于表单内容层，弹窗滚动容器始终占满弹窗宽度，
+// 因此滚动条恒定贴弹窗最右缘，不随表单宽度/列数布局变化。
+const formWidthClass = computed(() => props.options.formWidth || 'w-1/2');
 const rowKey = computed(() => props.options.rowKey || 'id');
 const isView = computed(() => viewType.value === 'view');
 
@@ -181,7 +185,7 @@ async function handleOpen() {
     // 任何上游环节(列表、路由、vxe-grid、ApiTreeSelect)一旦把 id 转成 number，
     // 回填表单后再次请求详情就会因 id 不匹配返回 Not Found。
     // 这里在 view 拿回数据 → setValues → 表单渲染 链路入口统一把 id 还原为字符串。
-    const protectId = (row: Record<string, any> | null | undefined) => {
+    const protectId = (row: null | Record<string, any> | undefined) => {
       if (!row) return row;
       if (row[rowKey.value] !== undefined && row[rowKey.value] !== null) {
         row[rowKey.value] = String(row[rowKey.value]);
@@ -332,16 +336,24 @@ defineExpose({
 </script>
 
 <template>
+  <!--
+    滚动条与表单布局解耦约束：
+    1. 滚动条只由弹窗内部滚动容器（vben Modal/Drawer 的 content 区域）产生，
+       该容器必须始终占满弹窗宽度 —— 严禁通过 :content-class 向其传递任何宽度类，
+       否则滚动条会随宽度内缩而"错位"到弹窗中部。
+    2. 表单内容的宽度（formWidth）与列数（wrapperClass，1列/2列/多列）只影响
+       内容自身的视觉布局，不会影响滚动条位置。
+  -->
   <Modal
     v-if="options.dialogType !== 'drawer'"
     :title="dialogTitle"
     :class="dialogClass"
-    :content-class="dialogWidth"
   >
     <!-- 查看模式：使用 DetailViewer 详情组件 -->
     <DetailViewer
       v-if="isView"
       class="p-4"
+      :class="formWidthClass"
       :model="currentRow"
       :schema="formSchema"
       :layout="detailLayout"
@@ -349,7 +361,12 @@ defineExpose({
       :common-config="detailCommonConfig"
     />
     <!-- 新增/编辑模式：使用 Form 表单 -->
-    <BasicForm v-else class="p-4" :show-default-actions="false" />
+    <BasicForm
+      v-else
+      class="p-4"
+      :class="formWidthClass"
+      :show-default-actions="false"
+    />
   </Modal>
   <Drawer v-else :title="dialogTitle" :class="dialogClass">
     <!-- 查看模式：使用 DetailViewer 详情组件 -->

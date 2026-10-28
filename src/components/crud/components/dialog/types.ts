@@ -42,6 +42,13 @@ export interface FormDialogOptions extends Omit<
   layout?: 'horizontal' | 'inline' | 'vertical';
   /** Grid 布局 class，用于控制表单列数 */
   wrapperClass?: string;
+  /**
+   * 表单内容区宽度 class（相对弹窗内容区）。
+   * 仅控制表单内容的视觉宽度，滚动容器始终占满弹窗宽度，
+   * 因此滚动条位置固定在弹窗最右缘，不随表单列数/宽度布局变化。
+   * 默认 'w-1/2'（对半显示）；多列布局可配 'w-full' 占满。
+   */
+  formWidth?: string;
   draggable?: boolean;
   fullscreenButton?: boolean;
   /** 弹窗组件的 CSS class，例如 'top-0' 让弹窗靠顶部显示 */
