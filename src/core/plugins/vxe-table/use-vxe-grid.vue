@@ -352,8 +352,21 @@ async function init() {
   }
   props.api?.setState?.({ gridOptions: defaultGridOptions });
   // form 由 vben-form 代替，所以需要保证query相关事件可以拿到参数
-  extendProxyOptions(props.api, defaultGridOptions, () =>
-    formApi.getLatestSubmissionValues(),
+  // 工具栏刷新按钮触发时，读取当前表单值（含未提交的修改）并回写为最新提交值，
+  // 保证刷新携带当前生效的搜索条件，且后续翻页/排序等操作使用相同条件保持一致
+  extendProxyOptions(
+    props.api,
+    defaultGridOptions,
+    () => formApi.getLatestSubmissionValues(),
+    async () => {
+      // 表单未挂载时 getValues 会一直等待，这里直接回退为上次提交值
+      if (!formApi.isMounted) {
+        return null;
+      }
+      const values = await formApi.getValues();
+      formApi.setLatestSubmissionValues(toRaw(values));
+      return toRaw(values);
+    },
   );
 }
 

@@ -14,6 +14,7 @@ import {
   reactive,
   ref,
   shallowReactive,
+  toRaw,
   useSlots,
 } from 'vue';
 import { useRoute } from 'vue-router';
@@ -278,6 +279,22 @@ const mergedToolbarConfig = computed(() => {
     zoom: tc?.zoom ?? true,
     export: tc?.export ?? false,
     search: hasSearchForm,
+    // 自定义刷新行为：先以当前搜索表单值（含未提交的修改）更新最近提交值，
+    // 再通过 refreshSoft 重新查询，保持树形展开等页面状态与数据一致
+    refreshOptions: {
+      query: async () => {
+        const formApi = crudInstance.getFormApi();
+        if (formApi?.isMounted) {
+          try {
+            const values = toRaw(await formApi.getValues());
+            formApi.setLatestSubmissionValues(values);
+          } catch {
+            // 表单未就绪时忽略，沿用最近提交的搜索条件
+          }
+        }
+        crudInstance.refreshSoft();
+      },
+    },
   };
 });
 
@@ -306,6 +323,44 @@ const mergedTreeConfig = computed(() => {
 
   return config;
 });
+
+// 事件类对象识别：vxe 工具栏刷新按钮会把原生事件对象（如 PointerEvent，
+// 可能被代理包装导致 instanceof 失效）作为第二个参数透传给 query，
+// 不能直接展开，否则会混入 isTrusted 等事件属性并丢失搜索条件
+function isEventLike(value: any): boolean {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    ('isTrusted' in value || value instanceof Event)
+  );
+}
+
+// 解析 query 的表单值参数：
+// 1. 显式传参（搜索/重置/初始加载）：直接使用；
+// 2. 工具栏刷新按钮透传事件对象：改读当前搜索表单值（含未提交的修改），
+//    并回写为最新提交值，保证刷新携带当前生效的条件且后续操作保持一致；
+// 3. 未传参（翻页/排序等）：回退为最近一次提交的搜索条件。
+async function resolveQueryFormValues(
+  formValues: any,
+): Promise<Record<string, any>> {
+  const formApi = crudInstance.getFormApi();
+  let extraValues: Record<string, any> | undefined = formValues;
+  if (isEventLike(extraValues)) {
+    if (formApi?.isMounted) {
+      try {
+        extraValues = toRaw(await formApi.getValues());
+        formApi.setLatestSubmissionValues(extraValues);
+      } catch {
+        extraValues = undefined;
+      }
+    } else {
+      extraValues = undefined;
+    }
+  }
+  const latestValues =
+    (formApi?.getLatestSubmissionValues?.() as Record<string, any>) ?? {};
+  return { ...latestValues, ...extraValues };
+}
 
 const mergedGridOptions = computed(() => {
   const { crudApi: api } = mergedCrudSchema.value;
@@ -361,14 +416,16 @@ const mergedGridOptions = computed(() => {
     proxyConfig: {
       ajax: {
         query: async ({ page }: any, formValues: any) => {
+          // 解析搜索条件（详见 resolveQueryFormValues）
+          const mergedFormValues = await resolveQueryFormValues(formValues);
           // 静态树形模式不分页；懒加载树保留分页（顶层 pid 由 beforeFetch 注入）
           const params =
             isTreeMode && !isLazyTree
-              ? { ...formValues }
+              ? { ...mergedFormValues }
               : {
                   [paginationConfig?.currentKey || 'page']: page.currentPage,
                   [paginationConfig?.sizeKey || 'limit']: page.pageSize,
-                  ...formValues,
+                  ...mergedFormValues,
                 };
           // 使用合并后的 beforeFetch（优先顶层配置）
           const beforeFetch = tableConfig.value.beforeFetch;
