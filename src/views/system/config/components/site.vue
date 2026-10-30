@@ -14,8 +14,8 @@ import { $t } from '#/locales';
 
 const [BasicForm, formApi] = useVbenForm({
   showDefaultActions: false,
-  commonConfig: { labelWidth: 130 },
-  wrapperClass: 'grid-cols-2',
+  commonConfig: { labelWidth: 120 },
+  wrapperClass: 'grid-cols-1 gap-x-6 gap-y-1 lg:grid-cols-2',
   schema: [
     {
       fieldName: 'site_open',
@@ -32,7 +32,7 @@ const [BasicForm, formApi] = useVbenForm({
       fieldName: 'site_url',
       label: $t('system.config.site.url'),
       component: 'Input',
-      formItemClass: 'col-span-2 w-1/2',
+      formItemClass: 'col-span-1 w-full lg:col-span-2 lg:w-1/2',
       componentProps: {
         placeholder: $t('system.config.site.placeholder.url'),
       },
@@ -41,7 +41,7 @@ const [BasicForm, formApi] = useVbenForm({
       fieldName: 'site_name',
       label: $t('system.config.site.name'),
       component: 'Input',
-      formItemClass: 'col-span-2 w-1/2',
+      formItemClass: 'col-span-1 w-full lg:col-span-2 lg:w-1/2',
       componentProps: {
         placeholder: $t('system.config.site.placeholder.name'),
       },
@@ -50,7 +50,7 @@ const [BasicForm, formApi] = useVbenForm({
       fieldName: 'site_logo',
       label: $t('system.config.site.logo'),
       component: 'Avatar',
-      formItemClass: 'col-span-2 w-1/2',
+      formItemClass: 'col-span-1 w-full lg:col-span-2 lg:w-1/2',
     },
     {
       fieldName: 'site_keywords',
@@ -74,7 +74,7 @@ const [BasicForm, formApi] = useVbenForm({
       fieldName: 'site_record_no',
       label: $t('system.config.site.record_no'),
       component: 'Input',
-      formItemClass: 'col-span-2 w-1/2',
+      formItemClass: 'col-span-1 w-full lg:col-span-2 lg:w-1/2',
       componentProps: {
         placeholder: $t('system.config.site.placeholder.record_no'),
       },
@@ -83,7 +83,7 @@ const [BasicForm, formApi] = useVbenForm({
       fieldName: 'site_icp_url',
       label: $t('system.config.site.icp_url'),
       component: 'Input',
-      formItemClass: 'col-span-2 w-1/2',
+      formItemClass: 'col-span-1 w-full lg:col-span-2 lg:w-1/2',
       componentProps: {
         placeholder: $t('system.config.site.placeholder.icp_url'),
       },
@@ -92,7 +92,7 @@ const [BasicForm, formApi] = useVbenForm({
       fieldName: 'site_network_security',
       label: $t('system.config.site.network_security'),
       component: 'Input',
-      formItemClass: 'col-span-2 w-1/2',
+      formItemClass: 'col-span-1 w-full lg:col-span-2 lg:w-1/2',
       componentProps: {
         placeholder: $t('system.config.site.placeholder.network_security'),
       },
@@ -101,7 +101,7 @@ const [BasicForm, formApi] = useVbenForm({
       fieldName: 'site_network_security_url',
       label: $t('system.config.site.network_security_url'),
       component: 'Input',
-      formItemClass: 'col-span-2 w-1/2',
+      formItemClass: 'col-span-1 w-full lg:col-span-2 lg:w-1/2',
       componentProps: {
         placeholder: $t('system.config.site.placeholder.network_security_url'),
       },

@@ -4,7 +4,7 @@ import type { TabsPaneContext } from 'element-plus';
 import { defineAsyncComponent, markRaw, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { ElCard, ElTabPane, ElTabs } from 'element-plus';
+import { ElTabPane, ElTabs } from 'element-plus';
 
 import { Page } from '#/components/page';
 import { useAccess } from '#/core/access';
@@ -70,15 +70,14 @@ const settingList = ref([
 </script>
 
 <template>
-  <Page>
-    <ElCard>
-      <ElTabs v-model="activeName" @tab-click="handleClick">
+  <Page class="bg-card" content-class="p-4 md:p-6">
+    <div class="min-w-0">
+      <ElTabs v-model="activeName" class="config-tabs" @tab-click="handleClick">
         <ElTabPane
           v-for="item in settingList"
           :key="item.key"
           :name="item.key"
           :label="item.name"
-          class="mt-5"
         >
           <component :is="item.component" :key="item.loadKey" v-bind="$attrs" />
         </ElTabPane>
@@ -89,6 +88,39 @@ const settingList = ref([
           :label="$t('system.config.common.title')"
         />
       </ElTabs>
-    </ElCard>
+    </div>
   </Page>
 </template>
+
+<style scoped>
+.config-tabs {
+  --el-tabs-header-height: 40px;
+}
+
+.config-tabs :deep(.el-tabs__header) {
+  margin-bottom: 20px;
+}
+
+.config-tabs :deep(.el-tabs__nav-wrap) {
+  overflow-x: auto;
+}
+
+.config-tabs :deep(.el-tabs__nav-wrap::after) {
+  background-color: var(--el-border-color-lighter);
+}
+
+.config-tabs :deep(.el-tabs__item) {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.config-tabs :deep(.el-tabs__item:hover),
+.config-tabs :deep(.el-tabs__item.is-active) {
+  color: var(--el-color-primary);
+}
+
+.config-tabs :deep(.el-tabs__item.is-active) {
+  font-weight: 500;
+}
+</style>

@@ -10,9 +10,9 @@ import type { WebSiteConfig } from '#/api/web/site';
 
 import { computed, onMounted, ref } from 'vue';
 
+import { useMediaQuery } from '@vueuse/core';
 import {
   ElButton,
-  ElCard,
   ElDivider,
   ElForm,
   ElFormItem,
@@ -52,6 +52,7 @@ const form = ref<WebSiteConfig>({
 });
 
 const activeTab = ref('site');
+const isSmallScreen = useMediaQuery('(max-width: 639px)');
 const loading = ref(false);
 const saving = ref(false);
 
@@ -79,80 +80,85 @@ onMounted(loadConfig);
 </script>
 
 <template>
-  <Page auto-content-height>
-    <div v-loading="loading" class="mx-auto max-w-[760px]">
+  <Page auto-content-height class="bg-card" content-class="p-4 md:p-6">
+    <div v-loading="loading" class="min-w-0">
       <div class="mb-4">
-        <h2 class="text-base font-semibold text-[#1F2329]">
+        <h2 class="text-foreground text-base font-semibold">
           {{ $t('web.site.title') }}
         </h2>
-        <p class="mt-1 text-xs text-[#909399]">{{ $t('web.site.subtitle') }}</p>
+        <p class="text-muted-foreground mt-1 text-xs">
+          {{ $t('web.site.subtitle') }}
+        </p>
       </div>
 
-      <ElCard shadow="never" class="rounded-lg border-[#E5E8EF]">
-        <ElTabs v-model="activeTab">
-          <ElTabPane
-            v-for="tab in schemas"
-            :key="tab.name"
-            :label="tab.label"
-            :name="tab.name"
+      <ElTabs v-model="activeTab">
+        <ElTabPane
+          v-for="tab in schemas"
+          :key="tab.name"
+          :label="tab.label"
+          :name="tab.name"
+        >
+          <ElForm
+            label-width="120px"
+            :label-position="isSmallScreen ? 'top' : 'right'"
+            class="mt-2 w-full lg:w-1/2"
           >
-            <ElForm label-width="120px" class="mt-2">
-              <template v-for="field in tab.schema" :key="field.fieldName">
-                <ElDivider v-if="field.component === 'Divider'" class="!my-5">
-                  <span class="text-xs text-[#909399]">
-                    {{ field.label }}
+            <template v-for="field in tab.schema" :key="field.fieldName">
+              <ElDivider v-if="field.component === 'Divider'" class="!my-5">
+                <span class="text-xs text-muted-foreground">
+                  {{ field.label }}
+                </span>
+              </ElDivider>
+              <ElFormItem v-else :label="field.label">
+                <template v-if="field.component === 'Switch'">
+                  <ElSwitch
+                    v-if="field.fieldName === 'site_open'"
+                    :model-value="form.site_open === 1"
+                    @update:model-value="form.site_open = $event ? 1 : 0"
+                  />
+                  <ElSwitch v-else v-model="form[field.fieldName]" />
+                </template>
+                <div
+                  v-else-if="field.component === 'ImageSelector'"
+                  class="flex min-w-0 flex-col items-start gap-3 sm:flex-row"
+                >
+                  <ImageSelector
+                    class="shrink-0"
+                    v-model="form[field.fieldName]"
+                    v-bind="field.componentProps"
+                  />
+                  <span class="mt-1 text-xs leading-5 text-muted-foreground">
+                    {{ field.description }}
                   </span>
-                </ElDivider>
-                <ElFormItem v-else :label="field.label">
-                  <template v-if="field.component === 'Switch'">
-                    <ElSwitch
-                      v-if="field.fieldName === 'site_open'"
-                      :model-value="form.site_open === 1"
-                      @update:model-value="form.site_open = $event ? 1 : 0"
-                    />
-                    <ElSwitch v-else v-model="form[field.fieldName]" />
-                  </template>
-                  <div
-                    v-else-if="field.component === 'ImageSelector'"
-                    class="flex items-start gap-3"
-                  >
-                    <ImageSelector
-                      v-model="form[field.fieldName]"
-                      v-bind="field.componentProps"
-                    />
-                    <span class="mt-1 text-xs leading-5 text-[#909399]">
-                      {{ field.description }}
-                    </span>
-                  </div>
-                  <template v-else-if="field.component === 'Input'">
-                    <div v-if="field.description" class="w-full">
-                      <ElInput
-                        v-model="form[field.fieldName]"
-                        v-bind="field.componentProps"
-                      />
-                      <p class="mt-1.5 text-xs leading-5 text-[#909399]">
-                        {{ field.description }}
-                      </p>
-                    </div>
+                </div>
+                <template v-else-if="field.component === 'Input'">
+                  <div v-if="field.description" class="w-full">
                     <ElInput
-                      v-else
                       v-model="form[field.fieldName]"
                       v-bind="field.componentProps"
                     />
-                  </template>
-                </ElFormItem>
-              </template>
-            </ElForm>
-          </ElTabPane>
-        </ElTabs>
+                    <p class="mt-1.5 text-xs leading-5 text-muted-foreground">
+                      {{ field.description }}
+                    </p>
+                  </div>
+                  <ElInput
+                    v-else
+                    v-model="form[field.fieldName]"
+                    v-bind="field.componentProps"
+                  />
+                </template>
+              </ElFormItem>
+            </template>
+          </ElForm>
+        </ElTabPane>
+      </ElTabs>
 
-        <ElDivider class="!mb-4" />
-        <div class="flex justify-end">
-          <ElButton type="primary" :loading="saving" @click="save">
-            {{ $t('web.site.actions.save') }}
-          </ElButton>
-        </div>
-      </ElCard>
+      <ElDivider class="!mb-4" />
+      <div class="flex justify-end">
+        <ElButton type="primary" :loading="saving" @click="save">
+          {{ $t('web.site.actions.save') }}
+        </ElButton>
+      </div>
     </div>
   </Page>
 </template>
