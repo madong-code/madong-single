@@ -5,7 +5,6 @@ import { ElButton, ElMessage } from 'element-plus';
 
 import { useVbenForm } from '#/adapter/form';
 import { ConfigService } from '#/api/system/config';
-import { Page } from '#/components/page';
 import { $t } from '#/locales';
 
 const [BasicForm, formApi] = useVbenForm({
@@ -117,11 +116,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page
-    :title="$t('system.config.email.title')"
-    auto-content-height
-    :height-offset="150"
-  >
+  <div class="min-w-0">
     <BasicForm />
     <div
       class="mt-4 flex flex-wrap justify-end gap-2 border-t border-border pt-4"
@@ -130,5 +125,5 @@ onMounted(() => {
         {{ $t('system.config.save') }}
       </ElButton>
     </div>
-  </Page>
+  </div>
 </template>

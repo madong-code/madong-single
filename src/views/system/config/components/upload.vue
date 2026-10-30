@@ -5,7 +5,6 @@ import { ElButton, ElMessage } from 'element-plus';
 
 import { useVbenForm } from '#/adapter/form';
 import { ConfigService } from '#/api/system/config';
-import { Page } from '#/components/page';
 import { DictEnum } from '#/enums';
 import { $t } from '#/locales';
 
@@ -91,11 +90,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page
-    :title="$t('system.config.upload.title')"
-    auto-content-height
-    :height-offset="150"
-  >
+  <div class="min-w-0">
     <BasicForm />
     <div
       class="mt-4 flex flex-wrap justify-end gap-2 border-t border-border pt-4"
@@ -108,5 +103,5 @@ onMounted(() => {
       </ElButton>
     </div>
     <UploadSettingDrawer ref="uploadSettingDrawerRef" />
-  </Page>
+  </div>
 </template>
