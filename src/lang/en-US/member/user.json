@@ -30,5 +30,13 @@
     "level_id": "Level",
     "enabled": "Status",
     "remark": "Remark"
+  },
+  "reset_password": {
+    "title": "Reset Password",
+    "content": "Are you sure to reset the login password of member \"{0}\"?",
+    "placeholder": "Enter new password (6-20 characters)",
+    "required": "Please enter the new password",
+    "length": "Password length must be 6-20 characters",
+    "success": "Password reset successfully"
   }
 }
