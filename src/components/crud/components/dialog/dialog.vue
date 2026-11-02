@@ -118,10 +118,8 @@ const dialogClass = computed(() => {
   if (props.options.class) cls.push(props.options.class);
   return cls.join(' ');
 });
-// 表单内容宽度：默认对半显示，可通过 options.formWidth 调整（如多列表单配 'w-full'）。
-// 注意：该宽度只作用于表单内容层，弹窗滚动容器始终占满弹窗宽度，
-// 因此滚动条恒定贴弹窗最右缘，不随表单宽度/列数布局变化。
-const formWidthClass = computed(() => props.options.formWidth || 'w-1/2');
+// 表单内容层恒占满弹窗宽度（与 mono 模板一致）；
+// 控件宽度由字段级 controlClass / formItemClass(col-span) 控制，弹窗滚动容器恒占满弹窗宽度。
 const rowKey = computed(() => props.options.rowKey || 'id');
 const isView = computed(() => viewType.value === 'view');
 
@@ -341,8 +339,8 @@ defineExpose({
     1. 滚动条只由弹窗内部滚动容器（vben Modal/Drawer 的 content 区域）产生，
        该容器必须始终占满弹窗宽度 —— 严禁通过 :content-class 向其传递任何宽度类，
        否则滚动条会随宽度内缩而"错位"到弹窗中部。
-    2. 表单内容的宽度（formWidth）与列数（wrapperClass，1列/2列/多列）只影响
-       内容自身的视觉布局，不会影响滚动条位置。
+    2. 表单内容层恒占满弹窗宽度；列数（wrapperClass）与控件宽度（controlClass）
+       只影响内容自身的视觉布局，不会影响滚动条位置。
   -->
   <Modal
     v-if="options.dialogType !== 'drawer'"
@@ -353,7 +351,6 @@ defineExpose({
     <DetailViewer
       v-if="isView"
       class="p-4"
-      :class="formWidthClass"
       :model="currentRow"
       :schema="formSchema"
       :layout="detailLayout"
@@ -364,7 +361,6 @@ defineExpose({
     <BasicForm
       v-else
       class="p-4"
-      :class="formWidthClass"
       :show-default-actions="false"
     />
   </Modal>
