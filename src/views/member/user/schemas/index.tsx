@@ -114,9 +114,12 @@ export const useCrudSchema = (): CrudSchema => {
     formDialog: {
       enabled: true,
       title: $t('member.user.title'),
-      width: 'w-[50%]',
+      width: 'w-[60%]',
+      // 表单层恒占满弹窗（对齐 mono）；普通控件由 commonConfig.controlClass 限为一半宽
+      // （'!' 后缀提高优先级，避免被 element-plus 的 .el-input width:100% 覆盖），
+      // 备注字段单独覆盖 controlClass: 'w-full!' 实现占满整行
       wrapperClass: 'grid-cols-2',
-      commonConfig: { labelWidth: 100 },
+      commonConfig: { labelWidth: 100, controlClass: 'w-1/2!' },
       schema: [
         {
           fieldName: 'id',
@@ -194,6 +197,8 @@ export const useCrudSchema = (): CrudSchema => {
           label: $t('member.user.form.remark'),
           component: 'Input',
           formItemClass: 'col-span-2',
+          // 覆盖 commonConfig.controlClass('w-1/2!')，textarea 占满整行
+          controlClass: 'w-full!',
           componentProps: { type: 'textarea', rows: 3 },
         },
       ],
