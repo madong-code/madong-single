@@ -69,6 +69,13 @@ export class PluginRouteScanner {
 
   /**
    * 合并插件路由到后端菜单
+   *
+   * 合并语义（与 aura 模版保持一致）：
+   * - 后端菜单为权威基底：name（取自权限码，是路由身份锚点）与 meta 展示字段
+   *   （title/icon/order）保留后端值，插件仅在缺失字段上补充（如 meta.module）
+   * - 同节点识别：name 大小写不敏感（后端 'codegen' vs 插件 'Codegen'），
+   *   或 path 相同（后端 name 常为权限码，插件 routes 常用自定义 name）
+   * - 插件独有节点追加到末尾（sort 9999）
    */
   mergeBackendMenus(backendMenus: any[], forceRescan = false): any[] {
     if (forceRescan) {
@@ -80,66 +87,59 @@ export class PluginRouteScanner {
       return backendMenus;
     }
 
-    const merged = [...backendMenus];
-    const pluginRouteMap = new Map(backendRoutes.map((r) => [r.name, r]));
+    const normalizePath = (p?: string): string => (p || '').replace(/\/+$/, '');
+    const lowerName = (v: any): string => String(v ?? '').toLowerCase();
 
-    // 深度合并路由树
-    const mergeRouteTree = (routes: any[]): any[] => {
-      // 先去重，相同name的只保留第一个（后端优先，插件路由后续覆盖）
-      const uniqueRoutes = [
-        ...new Map(routes.map((r) => [r.name, r])).values(),
-      ];
+    /** 查找同节点：name 大小写不敏感，或 path 相同 */
+    const findMatch = (
+      list: any[],
+      extra: any,
+    ): any | undefined =>
+      list.find((item) => lowerName(item.name) === lowerName(extra.name)) ??
+      (normalizePath(extra.path)
+        ? list.find(
+            (item) => normalizePath(item.path) === normalizePath(extra.path),
+          )
+        : undefined);
 
-      return uniqueRoutes.map((route) => {
-        const pluginRoute = pluginRouteMap.get(route.name);
-
-        if (pluginRoute) {
-          // 合并路由，插件路由优先
-          const mergedRoute = { ...route, ...pluginRoute };
-
-          // 递归合并子路由
-          if (route.children && pluginRoute.children) {
-            mergedRoute.children = mergeRouteTree([
-              ...route.children,
-              ...pluginRoute.children,
-            ]);
-          } else if (pluginRoute.children) {
-            mergedRoute.children = mergeRouteTree(pluginRoute.children);
-          } else if (route.children) {
-            mergedRoute.children = mergeRouteTree(route.children);
-          }
-
-          return mergedRoute;
-        }
-
-        if (route.children) {
-          route.children = mergeRouteTree(route.children);
-        }
-
-        return route;
-      });
+    /** 合并节点：后端为基底，插件补充缺失字段（name 永远保留后端值） */
+    const mergeNode = (existing: any, extra: any): void => {
+      const { children: extraChildren, meta: extraMeta, ...rest } = extra;
+      // name 保留后端值，避免插件自定义 name 覆盖权限码锚点
+      const { name: _ignored, ...overridable } = rest;
+      Object.assign(existing, overridable);
+      if (extraMeta) {
+        existing.meta = { ...extraMeta, ...(existing.meta ?? {}) };
+      }
+      if (extraChildren?.length) {
+        existing.children = mergeTree(
+          existing.children ?? [],
+          extraChildren,
+        );
+      }
     };
 
-    // 添加未在后端菜单中定义的插件路由
-    backendRoutes.forEach((pluginRoute) => {
-      const exists = this.findRouteByName(merged, pluginRoute.name);
-      if (!exists) {
-        // 插件路由默认添加 sort 字段放在最后（如果没有设置sort）
-        if (pluginRoute.sort === undefined) {
-          pluginRoute.sort = 9999;
+    const mergeTree = (base: any[], extra: any[]): any[] => {
+      const list = [...base];
+      for (const extraItem of extra) {
+        const existing = findMatch(list, extraItem);
+        if (existing) {
+          mergeNode(existing, extraItem);
+        } else {
+          if (extraItem.sort === undefined) {
+            extraItem.sort = 9999;
+          }
+          list.push(extraItem);
         }
-        merged.push(pluginRoute);
       }
-    });
+      return list;
+    };
 
-    // 按 sort 字段排序（升序）
-    const sortedRoutes = mergeRouteTree(merged).toSorted((a, b) => {
+    return mergeTree(backendMenus, backendRoutes).toSorted((a, b) => {
       const sortA = a.sort ?? 0;
       const sortB = b.sort ?? 0;
       return sortA - sortB;
     });
-
-    return sortedRoutes;
   }
 
   /**
@@ -268,20 +268,6 @@ export class PluginRouteScanner {
     this.hasScanned = true;
 
     return { frontendRoutes, backendRoutes };
-  }
-
-  /**
-   * 在路由树中查找指定 name 的路由
-   */
-  private findRouteByName(routes: any[], name: string): any | undefined {
-    for (const route of routes) {
-      if (route.name === name) return route;
-      if (route.children) {
-        const found = this.findRouteByName(route.children, name);
-        if (found) return found;
-      }
-    }
-    return undefined;
   }
 
   /**
