@@ -8,6 +8,7 @@
 - [迁移说明](./migration.md)：从 Vue Vben Admin `v5.7.0` 多应用仓库迁移到当前结构的关键决策。
 - [开发指南](./development.md)：环境要求、启动方式、常用命令和交付检查。
 - [故障排查](./troubleshooting.md)：开发服务器、Element Plus、Mock 和测试相关问题。
+- [弹层全屏能力分析与兼容说明](./popup-fullscreen.md)：Modal / Drawer 与旧版弹层的全屏实现差异、默认值分层与回归清单。
 
 ## 维护约定
 
