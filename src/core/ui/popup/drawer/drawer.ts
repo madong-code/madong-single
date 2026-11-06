@@ -66,6 +66,16 @@ export interface DrawerProps {
    */
   footerClass?: ClassType;
   /**
+   * 是否全屏
+   * @default false
+   */
+  fullscreen?: boolean;
+  /**
+   * 是否显示全屏按钮
+   * @default false
+   */
+  fullscreenButton?: boolean;
+  /**
    * 是否显示顶栏
    * @default true
    */

@@ -223,6 +223,8 @@ function getFormDialogOptions(): FormDialogOptions {
     commonConfig: fd?.commonConfig,
     draggable: fd?.draggable,
     fullscreenButton: fd?.fullscreenButton,
+    class: fd?.class,
+    zIndex: fd?.zIndex,
     transformFormValues: fd?.transformFormValues,
     // 支持业务层自定义 onSuccess 回调，未提供则使用默认刷新逻辑
     onSuccess:

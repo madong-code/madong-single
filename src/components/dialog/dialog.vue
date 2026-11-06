@@ -18,6 +18,7 @@ const props = withDefaults(defineProps<MyDialogProps>(), {
   // 注意：Boolean prop 未传入时 Vue 会解析为 false 而非 undefined，
   // 默认开启的开关必须在此声明默认值，模板里的 ?? true 不会生效
   modal: true,
+  fullscreenButton: true,
   closeOnPressEscape: true,
   destroyOnClose: true,
   closeOnClickModal: false,
@@ -26,7 +27,15 @@ const props = withDefaults(defineProps<MyDialogProps>(), {
 
 const emit = defineEmits<DialogEmits>();
 const dialogVisible = ref(false);
-const fullscreen = ref(false);
+const dialogPropsRef = ref<MyDialogProps>(props);
+
+// 全屏状态与 dialogPropsRef 双向同步，使 setState({ fullscreen }) 可驱动且 getState() 可读
+const fullscreen = computed({
+  get: () => dialogPropsRef.value.fullscreen ?? false,
+  set: (value: boolean) => {
+    dialogPropsRef.value = { ...dialogPropsRef.value, fullscreen: value };
+  },
+});
 
 // 根据 dialogType 决定使用哪个组件
 const dialogComponent = computed(() => {
@@ -41,7 +50,6 @@ const customClass = computed(() => {
     : `${baseClass} m-dialog-box`;
 });
 
-const dialogPropsRef = ref<MyDialogProps>(props);
 const toggleFullscreen = () => {
   fullscreen.value = !fullscreen.value;
 };
@@ -72,6 +80,7 @@ const methods: MyDialogInstance = {
   close() {
     dialogVisible.value = false;
   },
+  toggleFullscreen,
   // 设置组件状态（props）
   setState(state: MyDialogProps) {
     return new Promise((resolve) => {
@@ -122,6 +131,7 @@ defineExpose(methods);
         }}</span>
         <div class="dialog-header-actions">
           <ElButton
+            v-if="dialogPropsRef.fullscreenButton"
             class="dialog-header-btn"
             @click="toggleFullscreen"
             link

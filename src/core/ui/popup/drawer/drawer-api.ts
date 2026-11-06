@@ -44,6 +44,8 @@ export class DrawerApi {
       confirmLoading: false,
       contentClass: '',
       footer: true,
+      fullscreen: false,
+      fullscreenButton: false,
       header: true,
       isOpen: false,
       loading: false,

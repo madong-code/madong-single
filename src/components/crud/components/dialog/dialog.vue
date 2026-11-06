@@ -78,6 +78,8 @@ const formOptions = computed(() => {
     rowKey: _rowKey,
     draggable: _draggable,
     fullscreenButton: _fullscreenButton,
+    class: _class,
+    zIndex: _zIndex,
     onSuccess: _onSuccess,
     beforeSubmit: _beforeSubmit,
     onOpen: _onOpen,
@@ -153,6 +155,8 @@ const [Modal, modalApi] = useVbenModal({
 
 // === Drawer ===
 const [Drawer, drawerApi] = useVbenDrawer({
+  fullscreenButton: props.options.fullscreenButton !== false,
+  zIndex: props.options.zIndex,
   confirmText: props.options.confirmText,
   cancelText: props.options.cancelText,
   async onConfirm() {
@@ -358,11 +362,7 @@ defineExpose({
       :common-config="detailCommonConfig"
     />
     <!-- 新增/编辑模式：使用 Form 表单 -->
-    <BasicForm
-      v-else
-      class="p-4"
-      :show-default-actions="false"
-    />
+    <BasicForm v-else class="p-4" :show-default-actions="false" />
   </Modal>
   <Drawer v-else :title="dialogTitle" :class="dialogClass">
     <!-- 查看模式：使用 DetailViewer 详情组件 -->

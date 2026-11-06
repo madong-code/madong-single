@@ -45,6 +45,21 @@ describe('drawerApi', () => {
     expect(drawerState.isOpen).toBe(false);
     expect(drawerState.cancelText).toBe(undefined);
     expect(drawerState.confirmText).toBe(undefined);
+    expect(drawerState.fullscreen).toBe(false);
+    expect(drawerState.fullscreenButton).toBe(false);
+  });
+
+  it('should toggle fullscreen through setState', () => {
+    drawerApi.setState((prev) => ({ ...prev, fullscreen: !prev.fullscreen }));
+    expect(drawerApi.store.state.fullscreen).toBe(true);
+    drawerApi.setState({ fullscreen: false });
+    expect(drawerApi.store.state.fullscreen).toBe(false);
+  });
+
+  it('should keep fullscreenButton off unless explicitly enabled', () => {
+    expect(drawerApi.store.state.fullscreenButton).toBe(false);
+    const drawerApiWithButton = new DrawerApi({ fullscreenButton: true });
+    expect(drawerApiWithButton.store.state.fullscreenButton).toBe(true);
   });
 
   it('should open the drawer', () => {

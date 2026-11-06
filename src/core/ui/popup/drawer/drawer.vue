@@ -16,7 +16,7 @@ import {
   usePriorityValues,
   useSimpleLocale,
 } from '#/core/composables';
-import { X } from '#/core/design/icons/base';
+import { Expand, Shrink, X } from '#/core/design/icons/base';
 import { ELEMENT_ID_MAIN_CONTENT } from '#/core/shared/constants';
 import { globalShareState } from '#/core/shared/global-state';
 import { cn } from '#/core/shared/utils';
@@ -76,6 +76,8 @@ const {
   destroyOnClose,
   footer: showFooter,
   footerClass,
+  fullscreen,
+  fullscreenButton,
   header: showHeader,
   headerClass,
   loading: showLoading,
@@ -90,6 +92,15 @@ const {
   titleTooltip,
   zIndex,
 } = usePriorityValues(props, state);
+
+const shouldFullscreen = computed(() => fullscreen.value);
+
+function handleFullscreen() {
+  props.drawerApi?.setState((prev) => ({
+    ...prev,
+    fullscreen: !fullscreen.value,
+  }));
+}
 
 // watch(
 //   () => showLoading.value,
@@ -185,11 +196,19 @@ const getForceMount = computed(() => {
     <SheetContent
       :append-to="getAppendTo"
       :class="
-        cn('flex w-130 flex-col', drawerClass, {
-          'w-full!': isMobile || placement === 'bottom' || placement === 'top',
-          'max-h-screen': placement === 'bottom' || placement === 'top',
-          hidden: isClosed,
-        })
+        cn(
+          'flex w-130 flex-col',
+          drawerClass,
+          {
+            'w-full!':
+              isMobile || placement === 'bottom' || placement === 'top',
+            'max-h-screen': placement === 'bottom' || placement === 'top',
+            hidden: isClosed,
+          },
+          shouldFullscreen
+            ? 'inset-0! h-full! max-h-none! w-full! max-w-none! sm:max-w-none! border-0! rounded-none!'
+            : '',
+        )
       "
       :modal="modal"
       :open="state?.isOpen"
@@ -261,6 +280,15 @@ const getForceMount = computed(() => {
 
         <div class="flex-center">
           <slot name="extra"></slot>
+          <VbenIconButton
+            v-if="fullscreenButton"
+            class="mr-0.5 hidden size-8 rounded-full px-1 text-lg text-foreground/80 opacity-80 transition-opacity hover:bg-accent hover:text-accent-foreground hover:opacity-100 focus:outline-hidden disabled:pointer-events-none sm:inline-flex"
+            :disabled="submitting"
+            @click="handleFullscreen"
+          >
+            <Shrink v-if="fullscreen" class="size-3" />
+            <Expand v-else class="size-3" />
+          </VbenIconButton>
           <SheetClose
             v-if="closable && closeIconPlacement === 'right'"
             as-child
@@ -280,6 +308,15 @@ const getForceMount = computed(() => {
           <SheetTitle />
           <SheetDescription />
         </VisuallyHidden>
+        <VbenIconButton
+          v-if="fullscreenButton"
+          class="absolute top-3 right-3 z-10 hidden size-8 rounded-full px-1 text-lg text-foreground/80 opacity-80 transition-opacity hover:bg-accent hover:text-accent-foreground hover:opacity-100 focus:outline-hidden disabled:pointer-events-none sm:inline-flex"
+          :disabled="submitting"
+          @click="handleFullscreen"
+        >
+          <Shrink v-if="fullscreen" class="size-4" />
+          <Expand v-else class="size-4" />
+        </VbenIconButton>
       </template>
       <div
         ref="wrapperRef"
