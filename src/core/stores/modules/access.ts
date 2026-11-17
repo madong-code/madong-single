@@ -28,6 +28,7 @@ interface AccessState {
   /**
    * 登录 accessToken
    */
+  tenantId: number | null | string;
   accessToken: AccessToken;
   /**
    * 是否已经检查过权限
@@ -112,6 +113,9 @@ export const useAccessStore = defineStore('core-access', {
     setRefreshToken(token: AccessToken) {
       this.refreshToken = token;
     },
+    setTenantId(tenantId: number | null | string) {
+      this.tenantId = tenantId;
+    },
     unlockScreen() {
       this.isLockScreen = false;
       this.lockScreenPassword = undefined;
@@ -132,6 +136,7 @@ export const useAccessStore = defineStore('core-access', {
     // 持久化
     pick: [
       'accessToken',
+      'tenantId',
       'refreshToken',
       'accessCodes',
       'isLockScreen',
@@ -143,6 +148,7 @@ export const useAccessStore = defineStore('core-access', {
     accessMenus: [],
     accessRoutes: [],
     accessToken: null,
+    tenantId: null,
     isAccessChecked: false,
     isLockScreen: false,
     lockScreenPassword: undefined,

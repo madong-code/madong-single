@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ElCard } from 'element-plus';
-
 import { Page } from '#/components/page';
 
 /** 模块市场页面入口 */
@@ -11,6 +9,6 @@ defineOptions({ name: 'AppPluginMarket' });
 
 <template>
   <Page auto-content-height>
-      <MarketRouter />
+    <MarketRouter />
   </Page>
 </template>

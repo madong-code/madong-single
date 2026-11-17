@@ -1,0 +1,15 @@
+{
+  "tenant": {
+    "title": "租户插件管理",
+    "market": "可用插件",
+    "installed": "已安装插件",
+    "columns": {
+      "name": "插件名称",
+      "code": "编码",
+      "version": "版本",
+      "description": "描述",
+      "author": "作者",
+      "installed_at": "安装时间"
+    }
+  }
+}

@@ -2,15 +2,16 @@ import type { UnreadCountData } from '#/api/content/message/notify/types';
 
 import { ref } from 'vue';
 
+import { useUserStore } from '#/core/stores';
+
 import { defineStore } from 'pinia';
 
 import { CategoryService } from '#/api/content/message/category';
 import { NotifyService } from '#/api/content/message/notify';
-import { useUserStore } from '#/core/stores';
+import { subscribeUserChannel } from '#/utils/push/client';
 
-import { subscribeUserChannel, resetPushClient } from '#/utils/push/client';
-
-let isInitialized = false;
+// 标记 message 事件是否已挂载（Push 单例由 utils/push/client.ts 统一持有）
+let pushInitialized = false;
 
 export const useNotifyStore = defineStore('notify', () => {
   // ========== 状态 ==========
@@ -20,15 +21,19 @@ export const useNotifyStore = defineStore('notify', () => {
   const loading = ref(false);
   const pushConnected = ref(false);
 
+  // ========== 订阅相关已移除：subscribe-page 直接调用 API ==========
+
   // ========== Push 连接管理 ==========
   function initPush() {
-    if (isInitialized) return;
+    if (pushInitialized) return;
 
     const userStore = useUserStore();
     const userId = (userStore.userInfo as Record<string, any>)?.id || '0';
+    const tenantId =
+      (userStore.userInfo as Record<string, any>)?.current_tenant?.id || '*';
 
-    const channel = subscribeUserChannel(String(userId));
-
+    // 复用全局 Push 单例（backend-admin-{tenantId}-{userId}），与菜单徽标共用同一条 WS
+    const channel = subscribeUserChannel(tenantId, String(userId));
     if (!channel) return;
 
     channel.on('message', (data: any) => {
@@ -44,15 +49,13 @@ export const useNotifyStore = defineStore('notify', () => {
       }
     });
 
+    pushInitialized = true;
     pushConnected.value = true;
-    isInitialized = true;
     loadUnreadCount();
-    console.log('[NotifyStore] 通知推送已初始化');
   }
 
   function destroyPush() {
-    isInitialized = false;
-    pushConnected.value = false;
+    // Push 连接由 Push 内部管理生命周期，不主动断开
   }
 
   // ========== 数据加载 ==========
@@ -146,8 +149,7 @@ export const useNotifyStore = defineStore('notify', () => {
     totalItems.value = 0;
     loading.value = false;
     pushConnected.value = false;
-    isInitialized = false;
-    resetPushClient();
+    pushInitialized = false;
   }
 
   // ========== 工具函数 ==========
@@ -157,7 +159,7 @@ export const useNotifyStore = defineStore('notify', () => {
       definition_id: item.definition_id,
       category: item.category_id ?? 0,
       category_name: item.category_name,
-      module_id: item.definition_id,
+      module_id: item.definition_id, // 兼容旧引用
       module_name: item.definition_name ?? item.module_name,
       title: item.title ?? '',
       content: item.content ?? '',
@@ -167,9 +169,9 @@ export const useNotifyStore = defineStore('notify', () => {
       isRead: item.status === 'read',
       link: item.action_url ?? '',
       query: item.action_params
-        ? typeof item.action_params === 'string'
+        ? (typeof item.action_params === 'string'
           ? JSON.parse(item.action_params)
-          : item.action_params
+          : item.action_params)
         : {},
       actionText: '立即查看',
       priority: item.priority,

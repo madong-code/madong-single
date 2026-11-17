@@ -4,8 +4,8 @@
  * 私有空间（非公开读）下，资源不能由前端自行拼接访问地址，
  * 必须按「资源 key + 用户身份」向后端换取带签名的临时直链：
  *
- *   前端 → POST /system/files/access-urls（keys）
- *        → 后端校验身份并生成七牛私有签名 URL
+ *   前端 → POST /adminapi/system/files/access-urls（keys）
+ *        → 后端按 UploadScene::admin() 校验身份并生成私有签名 URL
  *        → 前端 <img src="签名地址">
  *
  * 公开空间不发起任何请求，仍由调用方直接拼接访问域名。
@@ -36,28 +36,27 @@ const queue = new Set<string>();
 
 let flushing = false;
 
-/** 当前配置 */
-const siteConfig = () => {
+/** 站点配置类型（含存储运行时字段） */
+export type StorageConfig = Record<string, any>;
+
+/**
+ * 取存储字段所属配置
+ *
+ * 默认取租户配置（见 store 中 getStorageConfig 的说明）；
+ * 站点 Logo / favicon 这类「可能来自平台配置」的资源，必须把提供该值的 config
+ * 对象显式传入，否则会拿租户空间的域名与前缀去判断平台空间的资源。
+ */
+const siteConfig = (config?: StorageConfig): StorageConfig => {
   try {
-    return useSiteConfigStore().getCurrentConfig() as Record<string, any>;
+    return (config ?? useSiteConfigStore().getStorageConfig()) as StorageConfig;
   } catch {
-    return {} as Record<string, any>;
+    return {} as StorageConfig;
   }
 };
 
-/** 当前是否为私有空间（未开启则完全不需要请求后端） */
-export const isPrivateStorage = (): boolean => siteConfig().is_private === true;
-
-/**
- * 公开空间的资源访问域名
- *
- * @returns 配置了 CDN/静态域名时返回去尾斜杠的域名；空串表示同域访问（相对路径可直接访问）
- */
-const publicBaseUrl = (): string => {
-  const cfg = siteConfig();
-  const base = String(cfg.static_url || cfg.cdn_url || '').trim();
-  return base.replace(/\/+$/, '');
-};
+/** 指定配置是否为私有空间（未开启则完全不需要请求后端） */
+export const isPrivateStorage = (config?: StorageConfig): boolean =>
+  siteConfig(config).is_private === true;
 
 /** 取 URL 的主机名，非绝对地址返回空串 */
 const hostOf = (url: string): string => {
@@ -76,18 +75,25 @@ const hostOf = (url: string): string => {
  * - 相对路径：以配置的存储根目录开头，如 /storage/xxx
  * - 绝对地址：主机名与当前存储访问域名一致
  */
-export const isStorageResource = (path: string): boolean => {
+export const isStorageResource = (
+  path: string,
+  config?: StorageConfig,
+): boolean => {
   const trimmed = (path || '').trim();
   if (trimmed === '' || /^(data|blob):/i.test(trimmed)) return false;
 
   if (/^(https?:)?\/\//i.test(trimmed)) {
     const host = hostOf(trimmed);
-    const ownHost = hostOf(String(siteConfig().cdn_url || ''));
-    return host !== '' && ownHost !== '' && host.toLowerCase() === ownHost.toLowerCase();
+    const ownHost = hostOf(String(siteConfig(config).cdn_url || ''));
+    return (
+      host !== '' && ownHost !== '' && host.toLowerCase() === ownHost.toLowerCase()
+    );
   }
 
-  const prefix = String(siteConfig().storage_prefix || '')
-    .replace(/^\/+|\/+$/g, '');
+  const prefix = String(siteConfig(config).storage_prefix || '').replaceAll(
+    /^\/+|\/+$/g,
+    '',
+  );
   if (prefix === '') return false;
   return trimmed.replace(/^\/+/, '').startsWith(`${prefix}/`);
 };
@@ -97,13 +103,16 @@ const fetchSignedUrls = async (keys: string[]): Promise<void> => {
   keys.forEach((key) => lastAttemptAt.set(key, Date.now()));
   try {
     const list: any = await FilesService.accessUrls(keys);
-    const items: { key: string; url: string }[] = Array.isArray(list) ? list : [];
+    const items: { key: string; url: string }[] = Array.isArray(list)
+      ? list
+      : [];
 
     const next = { ...signedUrls.value };
     let changed = false;
     const resolved = new Set<string>();
     for (const item of items) {
-      if (!item?.key || typeof item.url !== 'string' || item.url === '') continue;
+      if (!item?.key || typeof item.url !== 'string' || item.url === '')
+        continue;
       resolved.add(item.key);
       if (next[item.key] !== item.url) {
         next[item.key] = item.url;
@@ -151,10 +160,14 @@ const enqueue = (key: string): void => {
  * @returns 命中私有空间时返回签名地址（未就绪返回 null，由调用方回落拼接）；
  *          公开空间或非存储资源始终返回 null
  */
-export const resolveSignedUrl = (path: string): null | string => {
+export const resolveSignedUrl = (
+  path: string,
+  config?: StorageConfig,
+): null | string => {
   const trimmed = (path || '').trim();
   if (trimmed === '') return null;
-  if (!isPrivateStorage() || !isStorageResource(trimmed)) return null;
+  if (!isPrivateStorage(config) || !isStorageResource(trimmed, config))
+    return null;
 
   const cached = signedUrls.value[trimmed];
   if (cached) return cached;
@@ -166,37 +179,20 @@ export const resolveSignedUrl = (path: string): null | string => {
 };
 
 /**
- * 私有资源是否处于「占位」状态
- *
- * 私有空间下 buildStaticUrl 在签名未就绪时会回落到拼接地址，浏览器随即对
- * 私有空间发起一次必然失败的裸链请求并留下破图。调用方据此先隐藏图片、
- * 保留品牌占位，签名缓存到齐后再渲染（signedUrls 是响应式的，会自动重算）。
- *
- * - 私有空间 + 本站存储资源 + 尚无签名地址 → true（换取失败也保持占位）
- * - 已有签名地址 / 公开空间 / 非本站存储资源 → false（按正常地址渲染）
- *
- * 与 template/web 的同名函数语义保持一致。
- */
-export const isPrivateResourcePending = (path: string): boolean => {
-  if (!isPrivateStorage() || !isStorageResource(path)) return false;
-  const trimmed = (path || '').trim();
-  return signedUrls.value[trimmed] === undefined;
-};
-
-/**
  * 主动换取一批资源地址（用于非渲染期写入缓存，如落 preferences 前）
  *
  * 等待完成后调用 resolveSignedUrl 即可命中缓存。
  */
 export const prefetchSignedUrls = async (
   paths: (string | undefined)[],
+  config?: StorageConfig,
 ): Promise<void> => {
-  if (!isPrivateStorage()) return;
+  if (!isPrivateStorage(config)) return;
 
   const keys = [...new Set(paths)]
     .filter((path): path is string => typeof path === 'string')
     .map((path) => path.trim())
-    .filter((path) => path !== '' && isStorageResource(path))
+    .filter((path) => path !== '' && isStorageResource(path, config))
     .filter((path) => !signedUrls.value[path] && !unresolved.has(path))
     .slice(0, MAX_BATCH);
 
@@ -205,15 +201,20 @@ export const prefetchSignedUrls = async (
   await fetchSignedUrls(keys);
 };
 
+/** 公开空间的资源访问域名（配置了 CDN/静态域名时返回去尾斜杠的域名；空串表示同域访问） */
+const publicBaseUrl = (): string => {
+  const cfg = siteConfig();
+  const base = String(cfg.static_url || cfg.cdn_url || '').trim();
+  return base.replace(/\/+$/, '');
+};
+
 /**
- * 把容器内的图片批量替换为可访问地址（正文型内容专用）
+ * 把容器内的图片批量替换为可访问地址（富文本内容专用）
  *
  * 富文本 HTML / Markdown 渲染结果里的图片地址无法在模板层交给 buildStaticUrl 处理，
  * 只能在渲染完成后扫描 DOM 后回写 src：
  * - 私有空间：命中本站存储空间的图片换取签名地址（未就绪先跳过，缓存到齐后重扫）
  * - 公开空间：把相对存储路径补全为存储访问域名（编辑器内不会自动拼接域名）
- *
- * @param root 已渲染完成的内容容器（元素或文档）
  */
 export const signContentImages = async (
   root: Document | Element | null | undefined,
@@ -226,7 +227,7 @@ export const signContentImages = async (
   const srcOf = (img: HTMLImageElement): string =>
     (img.getAttribute('src') || '').trim();
 
-  // 公开空间：相对存储路径在编辑器/正文容器里会按站点域名请求（404），需补全访问域名
+  // 公开空间：相对存储路径在编辑器正文容器里会按站点域名请求（404），需补全访问域名
   if (!isPrivateStorage()) {
     const base = publicBaseUrl();
     if (base === '') return;
@@ -238,7 +239,7 @@ export const signContentImages = async (
     return;
   }
 
-  /** 把命中的图片 src 替换为已获取到的签名地址（幂等，可重复调用） */
+  /** 把命中的图片 src 替换为已获取的签名地址（幂等，可重复调用） */
   const writeBack = () => {
     images.forEach((img) => {
       const src = srcOf(img);

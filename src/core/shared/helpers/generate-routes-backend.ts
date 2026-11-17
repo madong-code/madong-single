@@ -140,7 +140,7 @@ function convertRoutes(
     // 将后端根级 badge 字段映射到 meta (snake_case → camelCase)
     // 后端返回: badge, badge_type, badge_variants 在根级别
     // generateMenus() 从 meta.badge, meta.badgeType, meta.badgeVariants 读取
-    const rawBadge = node.badge;
+    const rawBadge = (node as Record<string, any>).badge;
     const rawBadgeType = (node as any).badge_type;
     const rawBadgeVariants = (node as any).badge_variants;
     if (
@@ -148,16 +148,17 @@ function convertRoutes(
       rawBadgeType !== undefined ||
       rawBadgeVariants !== undefined
     ) {
-      route.meta = route.meta || ({} as any);
+      const meta: Record<string, any> = (route.meta as Record<string, any>) || {};
       if (rawBadge !== undefined) {
-        route.meta.badge = String(rawBadge);
+        meta.badge = String(rawBadge);
       }
       if (rawBadgeType !== undefined) {
-        route.meta.badgeType = rawBadgeType;
+        meta.badgeType = rawBadgeType;
       }
       if (rawBadgeVariants !== undefined) {
-        route.meta.badgeVariants = rawBadgeVariants;
+        meta.badgeVariants = rawBadgeVariants;
       }
+      route.meta = meta as RouteRecordRaw['meta'];
     }
 
     // 无component但有子路由：自动使用 RouterView 作为容器

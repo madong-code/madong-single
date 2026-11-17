@@ -130,6 +130,11 @@ export const errorMessageResponseInterceptor = (
         return Promise.reject(error);
       }
 
+      // 静默请求：失败时不弹全局错误提示，由调用方自行处理
+      if (error?.config?.silent || error?.response?.config?.silent) {
+        return Promise.reject(error);
+      }
+
       const err: string = error?.toString?.() ?? '';
       let errMsg = '';
       if (err?.includes('Network Error')) {

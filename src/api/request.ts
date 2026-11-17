@@ -3,8 +3,6 @@
  */
 import type { RequestClientOptions } from '#/core/request';
 
-import { ElMessage } from 'element-plus';
-
 import { useAppConfig } from '#/core/composables';
 import { preferences } from '#/core/preferences';
 import {
@@ -14,6 +12,9 @@ import {
   RequestClient,
 } from '#/core/request';
 import { useAccessStore } from '#/core/stores';
+
+import { ElMessage } from 'element-plus';
+
 import { useAuthStore } from '#/store';
 
 import { refreshTokenApi } from './core';
@@ -77,6 +78,22 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
       config.headers.Authorization = formatToken(accessStore.accessToken);
       config.headers['Accept-Language'] = preferences.app.locale;
 
+      // 多租户：注入租户ID（SaaS 管理接口跳过）
+      // /auth/site-info 是登录页使用的平台级接口（后端按 tenant.enable 决定取
+      // platform 分组还是 default 分组），必须跳过租户上下文：
+      // 数据库隔离的租户库中没有平台配置，带上 X-Tenant-Id 会切到租户库，
+      // 导致站点 Logo / 名称回显为空而退回默认值。
+      if (
+        accessStore.tenantId &&
+        !config.url?.startsWith('/tenant') &&
+        !config.url?.startsWith('/db-settings') &&
+        !config.url?.startsWith('/db-drivers') &&
+        !config.url?.startsWith('/subscription') &&
+        !config.url?.startsWith('/auth/site-info')
+      ) {
+        config.headers['X-Tenant-Id'] = String(accessStore.tenantId);
+      }
+
       return config;
     },
   });
@@ -86,7 +103,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     defaultResponseInterceptor({
       codeField: 'code',
       dataField: 'data',
-      successCode: (code) => code === 0 || code === 200,
+      successCode: 0,
     }),
   );
 
@@ -201,19 +218,17 @@ export function sse(
   const eventSource = new EventSource(fullUrl, { withCredentials: true });
 
   // 注册 onOpen
-  const onOpen = eventHandlers.onOpen;
-  if (onOpen) {
-    eventSource.addEventListener('open', onOpen);
+  if (eventHandlers.onOpen) {
+    eventSource.addEventListener('open', () => eventHandlers.onOpen?.());
   }
 
   // 注册默认 message 事件
-  const onMessage = eventHandlers.onMessage;
-  if (onMessage) {
+  if (eventHandlers.onMessage) {
     eventSource.addEventListener('message', (event) => {
       try {
-        onMessage(JSON.parse(event.data));
+        eventHandlers.onMessage?.(JSON.parse(event.data));
       } catch {
-        onMessage(event.data);
+        eventHandlers.onMessage?.(event.data);
       }
     });
   }

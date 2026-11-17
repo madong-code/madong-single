@@ -3,32 +3,19 @@ import type {
   GenerateMenuAndRoutesOptions,
 } from '#/core/shared/types';
 
-import { defineComponent, h } from 'vue';
-import { RouterView } from 'vue-router';
+import { generateAccessible } from '#/core/access';
+import { preferences } from '#/core/preferences';
 
 import { ElMessage } from 'element-plus';
 
 import { getAllMenusApi } from '#/api';
-import { generateAccessible } from '#/core/access';
-import { preferences } from '#/core/preferences';
 import { BasicLayout, IFrameView } from '#/layouts';
 import { $t } from '#/locales';
 
 import pluginRouter from './plugin';
 
-/**
- * RouteView：路由分组容器，仅渲染子路由的 router-view。
- *
- * 必须使用静态函数式包装，不能用 `() => import('vue-router').then(m => m.RouterView)` 异步包装：
- * 异步包装解析后 KeepAlive 会直接缓存 RouterView（vue-router 弃用用法），
- * 导致 SPA 切换路由时嵌套视图不渲染（页面空白）甚至渲染进程挂起。
- */
-const RouteView = defineComponent({
-  name: 'RouteView',
-  setup() {
-    return () => h(RouterView);
-  },
-});
+/** RouteView：路由分组容器，仅渲染子路由的 router-view */
+const RouteView = () => import('vue-router').then((m) => m.RouterView);
 
 /** 无权限时显示的 403 组件 */
 const FORBIDDEN_COMPONENT = () =>
@@ -99,8 +86,27 @@ async function fetchBackendMenus(): Promise<any[]> {
     });
   };
 
+  // 后端根级 badge(snake_case) → route.meta(camelCase)，供核心包 generateMenus 提取
+  const mapRootBadgeToMeta = (menus: any[]): any[] =>
+    menus.map((m) => {
+      if (
+        m.badge !== undefined ||
+        m.badge_type !== undefined ||
+        m.badge_variants !== undefined
+      ) {
+        m.meta = m.meta || {};
+        if (m.badge !== undefined) m.meta.badge = String(m.badge);
+        if (m.badge_type !== undefined) m.meta.badgeType = m.badge_type;
+        if (m.badge_variants !== undefined) {
+          m.meta.badgeVariants = m.badge_variants;
+        }
+      }
+      if (m.children) m.children = mapRootBadgeToMeta(m.children);
+      return m;
+    });
+
   // 合并插件定义的后端格式路由
-  return pluginRouter.mergeBackendMenus(dedup(backendMenus));
+  return pluginRouter.mergeBackendMenus(mapRootBadgeToMeta(dedup(backendMenus)));
 }
 
 /**

@@ -10,6 +10,7 @@
 
 import { useSiteConfigStore } from '#/store/modules/site-config';
 
+import type { StorageConfig } from './private-storage';
 import { resolveSignedUrl } from './private-storage';
 
 // ============================================================================
@@ -60,13 +61,19 @@ const stripApiPrefix = (path: string): string => {
  * - 同域访问：返回空字符串，使用相对路径
  * - CDN 访问：返回完整域名
  */
-const getStaticBaseUrl = (domain?: string): string => {
+const getStaticBaseUrl = (
+  domain?: string,
+  config?: StorageConfig,
+): string => {
   // 1. 手动传入的 domain 优先级最高
   if (domain) return trimTrailingSlash(domain);
 
   // 2. 系统配置（后台动态配置）
+  // 存储前缀只由租户的 site_setting 下发，不能用 getCurrentConfig()（会因站点名称缺失回退平台配置）
+  // 资源来自平台配置时，调用方会显式传入该配置，避免用租户空间域名拼接平台资源
   const siteConfigStore = useSiteConfigStore();
-  const configStaticUrl = siteConfigStore.getCurrentConfig().static_url;
+  const configStaticUrl =
+    config?.static_url || siteConfigStore.getStorageConfig().static_url;
   if (configStaticUrl) return trimTrailingSlash(configStaticUrl);
 
   // 3. 环境变量
@@ -105,6 +112,7 @@ export const buildStaticUrl = (
   path: string,
   domain?: string,
   addParams: boolean = true,
+  config?: StorageConfig,
 ): string => {
   if (!path) return '';
 
@@ -115,14 +123,14 @@ export const buildStaticUrl = (
 
   // 私有空间：资源 key 交后端签发临时直链，前端不做任何拼接
   // （未就绪时返回 null，先按下方公开逻辑回落，拿到签名地址后重新渲染）
-  const signedUrl = resolveSignedUrl(trimmed);
+  const signedUrl = resolveSignedUrl(trimmed, config);
   if (signedUrl) return signedUrl;
 
   // 完整 URL、协议相对 URL → 无需加工直接返回
   if (isFullUrl(trimmed)) return addParams ? addCdnParams(trimmed) : trimmed;
   if (isProtocolRelativeUrl(trimmed)) return trimmed;
 
-  const baseUrl = getStaticBaseUrl(domain);
+  const baseUrl = getStaticBaseUrl(domain, config);
   const cleaned = stripLeadingSlash(trimmed);
 
   // 同域访问：返回以 / 开头的相对路径

@@ -1,4 +1,10 @@
-/** 站点设置（sys_config web_site_setting 的本页 14 键，存储键名；web 前台门户专用行，与 ERP 的 site_setting 分离） */
+/**
+ * 站点设置（sys_config web_site_setting 的本页 14 键，存储键名）
+ *
+ * 该行专供 web 前台门户使用，与 ERP 自身的 site_setting 行分离；
+ * 多租户下每租户各自一份（后端 TenantScope 隔离），保存时白名单 merge，
+ * 不会覆盖同行的 membership_enabled（portal 插件独占写）。
+ */
 export interface WebSiteConfig {
   /** web 前台站点开关：0 关闭（前台展示「站点已关闭」） 1 开启 */
   site_open: 0 | 1;

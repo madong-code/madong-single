@@ -1,10 +1,13 @@
 <script setup lang="ts">
-/** 模块市场路由：按站点模式分发 授权市场 或 独立市场 页面 */
+/** 模块市场路由：根据运行模式(SaaS多租户/单机版)显示对应分支
+ *  - SaaS 模式：显示"租户插件管理"(平台已装插件, 安装/卸载/更新菜单)
+ *  - 单体模式：显示完整单体版模块市场
+ */
 import { computed, onMounted, ref } from 'vue';
 
 import { requestClient } from '#/api/request';
 
-
+import TenantModuleMarket from './tenant/tenant-module-market.vue';
 import StandaloneModuleMarket from './standalone/standalone-module-market.vue';
 
 defineOptions({ name: 'MarketRouter' });
@@ -28,6 +31,7 @@ const isSaasMode = computed(() => mode.value === 'saas');
 
 <template>
   <div v-loading="loading" class="h-full flex flex-col">
-    <StandaloneModuleMarket v-if="!loading" class="flex-1" />
+    <TenantModuleMarket v-if="isSaasMode" class="flex-1" />
+    <StandaloneModuleMarket v-else-if="!loading" class="flex-1" />
   </div>
 </template>

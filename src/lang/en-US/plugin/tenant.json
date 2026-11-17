@@ -1,0 +1,15 @@
+{
+  "tenant": {
+    "title": "Tenant Plugin Management",
+    "market": "Available Plugins",
+    "installed": "Installed Plugins",
+    "columns": {
+      "name": "Name",
+      "code": "Code",
+      "version": "Version",
+      "description": "Description",
+      "author": "Author",
+      "installed_at": "Install Time"
+    }
+  }
+}

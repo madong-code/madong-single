@@ -1,6 +1,6 @@
 import type { MenuBadgeMap } from '#/core/stores/modules/menu-badge';
 
-import { useUserStore } from '#/core/stores';
+import { useAccessStore, useUserStore } from '#/core/stores';
 import { useMenuBadgeStore } from '#/core/stores/modules/menu-badge';
 import { mapPushBadgeDataToInternal } from '#/core/utils/merge-menu-badges';
 
@@ -12,10 +12,11 @@ let isInitialized = false;
 export function useMenuBadgePush(): void {
   if (isInitialized && badgeChannel) return;
 
+  const accessStore = useAccessStore();
   const userStore = useUserStore();
   const userId = (userStore.userInfo as Record<string, any>)?.id || '0';
 
-  badgeChannel = subscribeUserChannel(String(userId));
+  badgeChannel = subscribeUserChannel(String(accessStore.tenantId ?? 0), String(userId));
 
   if (!badgeChannel) return;
 

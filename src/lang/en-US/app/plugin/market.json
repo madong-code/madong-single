@@ -29,8 +29,12 @@
   "column_seq": "#",
   "column_module": "Module Info",
   "column_version": "Version",
+  "column_auth_status": "Authorization",
   "column_status": "Status",
   "column_action": "Actions",
+  "not_authorized": "Not Authorized",
+  "authorized_tag": "Authorized",
+  "unauthorized_tag": "Unauthorized",
   "detail": {
     "title": "Module Detail",
     "version": "Version: {ver}",
@@ -64,7 +68,21 @@
   },
   "update": {
     "success": "Module {name} database updated successfully",
-    "fail": "Failed to update database"
+    "fail": "Failed to update database",
+    "dialog_title": "Update Module",
+    "no_install": "Module is not installed and cannot be updated",
+    "up_to_date": "Already up to date, no update needed",
+    "current_version": "Current Version",
+    "platform_version": "Platform Version",
+    "sync_status": "Sync status: {state}",
+    "log_title": "Update Log",
+    "log_empty": "No log records",
+    "start": "Start Update"
+  },
+  "status": {
+    "upgradeable": "Updatable",
+    "installed": "Installed",
+    "available": "Not Installed"
   },
   "upgrade_log": {
     "title": "Update Info",

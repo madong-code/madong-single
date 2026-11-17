@@ -2,20 +2,21 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { Bell, FileText, TerminalSquare } from 'lucide-vue-next';
-
+import { AuthenticationLoginExpiredModal } from '#/core/ui/common';
 import { useWatermark } from '#/core/composables';
 import { BookOpenText, CircleHelp, SvgGithubIcon } from '#/core/design/icons';
 import { BasicLayout, LockScreen, UserDropdown } from '#/core/layouts';
 import { preferences, usePreferences } from '#/core/preferences';
-import { openWindow } from '#/core/shared';
-import { LOGIN_PATH } from '#/core/shared/constants';
 import { useAccessStore, useUserStore } from '#/core/stores';
-import { AuthenticationLoginExpiredModal } from '#/core/ui/common';
+import { openWindow } from '#/core/shared';
+
+import { Bell, FileText, TerminalSquare } from 'lucide-vue-next';
+
+import TenantSwitchModal from '#/components/tenant-switch/tenant-switch-modal.vue';
 import { $t } from '#/locales';
 import { useAuthStore, useNotifyStore, useTerminalStore } from '#/store';
 import { WEB_LINKS } from '#/utils/constants/links';
-import { buildAppUrl, buildStaticUrl } from '#/utils/url';
+import { buildStaticUrl } from '#/utils/url';
 import LoginForm from '#/views/_core/authentication/login.vue';
 import MessageDrawer from '#/views/content/message/notify/components/message-drawer.vue';
 import NotepadDrawer from '#/views/content/notepad/components/notepad-drawer.vue';
@@ -38,10 +39,11 @@ function openTerminalDialog() {
   terminalStore.toggle(true);
 }
 
-/** 是否显示终端按钮：超级管理员 */
+/** 是否显示终端按钮：非租户模式 + 超级管理员 */
 const showTerminalButton = computed(() => {
   const info = userStore.userInfo as null | Record<string, any>;
-  return info?.is_super === 1;
+  // 非租户模式（tenantId 为 null）且为平台超级管理员
+  return accessStore.tenantId === null && info?.is_super === 1;
 });
 
 onMounted(() => {
@@ -55,6 +57,19 @@ const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
 const { isDark } = usePreferences();
 
+/** 当前选中的租户名称 */
+const currentTenantName = computed(() => {
+  const info = userStore.userInfo as null | Record<string, any>;
+  return info?.current_tenant?.name ?? '';
+});
+
+/** 租户切换弹窗 ref */
+const tenantSwitchRef = ref<null | { open: () => void }>(null);
+
+function handleSwitchTenant() {
+  tenantSwitchRef.value?.open();
+}
+
 const menus = computed(() => [
   {
     handler: () => {
@@ -63,6 +78,17 @@ const menus = computed(() => [
     icon: 'lucide:user',
     text: $t('page.auth.profile'),
   },
+  // 切换租户菜单（仅平台级超管才有多租户访问权限）
+  ...(accessStore.tenantId !== null &&
+  (userStore.userInfo as null | Record<string, any>)?.is_platform_super
+    ? [
+        {
+          handler: handleSwitchTenant,
+          icon: 'lucide:building-2',
+          text: `切换租户${currentTenantName.value ? `（${currentTenantName.value}）` : ''}`,
+        },
+      ]
+    : []),
   {
     handler: () => {
       openWindow(WEB_LINKS.DOCS, {
@@ -83,7 +109,7 @@ const menus = computed(() => [
   },
   {
     handler: () => {
-      openWindow(WEB_LINKS.ASK, {
+      openWindow(`${WEB_LINKS.GITHUB}/issues`, {
         target: '_blank',
       });
     },
@@ -93,37 +119,14 @@ const menus = computed(() => [
 ]);
 
 const avatar = computed(() => {
-  const src = userStore.userInfo?.avatar;
-  // 头像可能是站点相对路径（/upload/...），云存储模式下需补全 CDN 域名，否则会打到前端站点域名而 404
-  return src ? buildStaticUrl(src) : preferences.app.defaultAvatar;
+  const raw = userStore.userInfo?.avatar;
+  // 头像存储的是资源 key（去域名的相对路径），必须经 buildStaticUrl 解析：
+  // 公开空间拼 cdn_url、私有空间换签名直链，直接当同域路径会 404
+  return raw ? buildStaticUrl(raw) : preferences.app.defaultAvatar;
 });
 
-// 后端返回 snake_case 字段（real_name/user_name），此处做 camelCase 兼容兜底
-const userInfo = computed(
-  () => userStore.userInfo as null | Record<string, any>,
-);
-const displayName = computed(
-  () =>
-    userInfo.value?.realName ||
-    userInfo.value?.real_name ||
-    userInfo.value?.username ||
-    userInfo.value?.user_name ||
-    '',
-);
-const userTag = computed(
-  () => userInfo.value?.username || userInfo.value?.user_name || '',
-);
-const userEmail = computed(() => userInfo.value?.email || '');
-
 async function handleLogout() {
-  try {
-    await authStore.logout(false);
-  } catch {
-    // 忽略错误
-  }
-  // 强制跳转到登录页（兜底，防止 authStore.logout 内部导航失败）
-  // 经 buildAppUrl 拼上部署 base（如 /admin/），避免子目录部署下 404
-  window.location.replace(buildAppUrl(LOGIN_PATH));
+  await authStore.logout(false);
 }
 
 watch(
@@ -152,7 +155,9 @@ watch(
           ],
           type: 'linear',
         },
-        content: content || displayName.value,
+        content:
+          content ||
+          `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}`,
       });
     } else {
       destroyWatermark();
@@ -170,9 +175,11 @@ watch(
       <UserDropdown
         :avatar
         :menus
-        :text="displayName"
-        :description="userEmail"
-        :tag-text="userTag"
+        :text="userStore.userInfo?.realName"
+        :description="
+          userStore.userInfo?.email || userStore.userInfo?.username || ''
+        "
+        :tag-text="userStore.userInfo?.username || ''"
         @logout="handleLogout"
       />
     </template>
@@ -195,8 +202,8 @@ watch(
       </div>
       <MessageDrawer ref="messageDrawerRef" />
     </template>
-    <!-- 命令终端按钮（仅超级管理员显示，排在记事本之后、暗黑开关之前） -->
-    <template #header-right-118>
+    <!-- 命令终端按钮（仅非租户模式 + 超级管理员显示） -->
+    <template #header-right-60>
       <div
         v-if="showTerminalButton"
         class="hidden size-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-accent hover:shadow-md md:flex mr-1"
@@ -205,12 +212,11 @@ watch(
       >
         <TerminalSquare class="size-[18px] text-foreground" />
       </div>
-      <!-- 终端弹窗仅超级管理员挂载，避免无权限时仍发起 commands/config 请求 -->
-      <TerminalDialog v-if="showTerminalButton" />
+      <TerminalDialog />
     </template>
 
-    <!-- 记事本按钮（排在设置之后、终端之前，移动端隐藏） -->
-    <template #header-right-115>
+    <!-- 记事本按钮（排在最后，移动端隐藏） -->
+    <template #header-right-100>
       <div
         class="hidden size-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-accent hover:shadow-md md:flex mr-1"
         title="记事本"
@@ -231,6 +237,8 @@ watch(
     <template #lock-screen>
       <LockScreen :avatar @to-login="handleLogout" />
     </template>
-    <!-- AI 助手悬浮按钮已随 ai 插件卸载移除：框架布局不得静态引用插件组件（插件功能应走注册制挂载） -->
   </BasicLayout>
+
+  <!-- 租户切换弹窗（放在 BasicLayout 外面，弹窗 DOM 由 Vben Modal 管理） -->
+  <TenantSwitchModal ref="tenantSwitchRef" />
 </template>

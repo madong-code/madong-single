@@ -5,7 +5,7 @@ export const DictEnum = {
   SYS_SEX: 'system.Sex',
 
   SYS_DICT_DATA_TYPE: 'system.DictDataType',
-  SYS_DICT_GROUP_CODE: 'sys_dict_group_code',
+  SYS_DICT_GROUP_CODE: 'system.DictGroupCode',
   SYS_CONFIG_TYPE: 'system.ConfigType',
   SYS_CONFIG_GROUP_CODE: 'system.ConfigGroupCode',
 
@@ -36,6 +36,7 @@ export const DictEnum = {
 
   SYS_DB_TYPE: 'system.DbType',
   SYS_ISOLATION_MODE: 'platform.IsolationMode',
+  SYS_TENANT_ADMIN_TYPE: 'system.TenantAdminType',
   MEMBER_POINT_TYPE: 'member.PointType',
   MEMBER_POINT_SOURCE: 'member.PointSource',
   WEB_MENU_CATEGORY: 'web.MenuCategory',

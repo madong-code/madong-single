@@ -3,18 +3,15 @@ import { ref } from 'vue';
 // src/store/modules/site-config.ts
 import { defineStore } from 'pinia';
 
+import { getSiteInfoApi } from '#/api';
 import { ConfigService } from '#/api/system/config';
-import { setPreferences } from '#/core/preferences';
 import { buildStaticUrl } from '#/utils/url';
 import { prefetchSignedUrls } from '#/utils/url/private-storage';
 
-// 站点配置的分组与编码（与后端 config 表一致）
-const SITE_GROUP_CODE = 'default';
-const SITE_CODE = 'site_setting';
-
-// 定义站点配置接口（单份平台站点配置，剥离多租户后无租户维度）
-// 配置来源：GET /system/config/code/site_setting?group_code=default
-// 该接口已标记为匿名可访问，登录前 / 登录后均走同一个接口与同一份数据
+// 定义站点配置接口（平台配置 + 租户配置共用）
+// 平台配置：从 /auth/site-info 获取，code='site_setting_platform'
+// 租户配置：从 /system/config/code/site_setting 获取
+// 两者字段完全一致，只是内容不同
 interface SystemConfig {
   logo?: string; // 站点Logo（来自后端 site_logo）
   title?: string; // 站点名称（来自后端 site_name）
@@ -57,39 +54,43 @@ function mapSiteConfig(source: Record<string, any>): SystemConfig {
 }
 
 /**
- * 站点配置状态管理（单份平台站点配置）
+ * 站点配置状态管理
  *
- * 剥离多租户后，站点配置统一为单份（标识 default），
- * 登录前后共用 GET /system/config/code/site_setting，不再区分接口。
+ * 双状态设计：
+ * - platformConfig：登录前获取的平台级配置（持久存在，退出不清空）
+ * - tenantConfig：登录后获取的租户级配置（退出时清空）
  */
 export const useSiteConfigStore = defineStore('siteConfig', () => {
   // ==================== 状态 ====================
 
-  // 单份平台站点配置（默认标识 default）
-  // 生命周期：bootstrap → 整个会话（退出不清空，登录页复用品牌）
+  // ── 登录前：平台级配置 ──
+  // 生命周期：bootstrap → 整个会话（退出不清空）
   const platformConfig = ref<SystemConfig>({});
   const platformLoading = ref(false);
   const platformIsLoaded = ref(false);
   const platformError = ref<null | string>(null);
 
+  // ── 登录后：租户级配置 ──
+  // 生命周期：登录成功 → 退出清空
+  const tenantConfig = ref<SystemConfig>({});
+  const tenantLoading = ref(false);
+  const tenantIsLoaded = ref(false);
+  const tenantError = ref<null | string>(null);
+
   // ==================== Actions ====================
 
   /**
-   * 获取站点配置（登录前后统一入口，无需 Token）
-   * GET /system/config/code/site_setting?group_code=default
-   *
-   * @param force 为 true 时忽略已加载状态强制重新拉取（保存配置后刷新用）
+   * 获取站点信息（登录前，不需要 Token）
+   * GET /auth/site-info → 后端直接返回站点配置（SaaS 取平台分组，标准版取 default 分组）
+   * 两端接口同名，前端单次请求即可；silent 保证个别后端缺接口时不弹提示
    */
-  const fetchPlatformConfig = async (force = false) => {
+  const fetchPlatformConfig = async () => {
     if (platformLoading.value) return;
-    if (platformIsLoaded.value && !force) return;
     platformLoading.value = true;
     platformError.value = null;
 
     try {
-      const response = (await ConfigService.getByCode(SITE_CODE, {
-        group_code: SITE_GROUP_CODE,
-      })) as any;
+      const response = (await getSiteInfoApi()) as any;
       platformConfig.value = mapSiteConfig(response as any);
       platformIsLoaded.value = true;
 
@@ -121,9 +122,45 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
   };
 
   /**
-   * 重置所有配置（退出登录时调用）
+   * 获取租户级配置（登录后，带 X-Tenant-Id）
+   * GET /system/config/code/site_setting → 使用独立 code 'site_setting'
+   * 结果写入 tenantConfig，使用 mapSiteConfig 转换格式
+   */
+  const fetchTenantConfig = async (code = 'site_setting') => {
+    if (tenantLoading.value) return;
+    tenantLoading.value = true;
+    tenantError.value = null;
+
+    try {
+      const response = (await ConfigService.getByCode(code)) as any;
+      tenantConfig.value = mapSiteConfig(response as any);
+      tenantIsLoaded.value = true;
+    } catch (error: any) {
+      tenantError.value = error.message || '获取系统配置失败';
+      console.error('获取租户配置失败:', error);
+    } finally {
+      tenantLoading.value = false;
+    }
+  };
+
+  /**
+   * 清空租户配置（退出登录时调用）
+   * 不影响 platformConfig（登录页复用平台品牌）
+   */
+  const clearTenantConfig = () => {
+    tenantConfig.value = {};
+    tenantLoading.value = false;
+    tenantError.value = null;
+    tenantIsLoaded.value = false;
+  };
+
+  /**
+   * 重置所有配置
    */
   const resetConfig = () => {
+    tenantConfig.value = {};
+    tenantError.value = null;
+    tenantIsLoaded.value = false;
     platformConfig.value = {};
     platformError.value = null;
     platformIsLoaded.value = false;
@@ -135,62 +172,94 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
     }
   };
 
-  // resetAllStores() 依赖 $reset()；单份配置模式下清空即可
-  const $reset = resetConfig;
+  // resetAllStores() 依赖 $reset()，setup 语法 store 需要手动实现
+  // $reset 只清空租户配置，保留平台配置（退出登录后登录页仍能显示平台品牌信息）
+  const $reset = clearTenantConfig;
 
   /**
-   * 获取当前有效配置
+   * 获取当前有效配置（优先租户，回退平台）
    * 用于 App.vue 动态更新 document.title / favicon
    */
   const getCurrentConfig = (): SystemConfig => {
-    return platformConfig.value;
+    if (tenantIsLoaded.value && tenantConfig.value.title) {
+      return tenantConfig.value;
+    }
+    if (platformIsLoaded.value && platformConfig.value.title) {
+      return platformConfig.value;
+    }
+    return tenantConfig.value;
   };
 
   /**
-   * 将当前 store 中的站点配置应用到 preferences（logo/标题/favicon）
-   * 不发起请求，仅做状态同步
+   * 获取存储相关配置（upload_mode / cdn_url / static_url / is_private / storage_prefix）
+   *
+   * 与 getCurrentConfig() 的区别：后者带 title 兜底，租户未配置站点名称时会整体回退到
+   * 平台配置；而存储字段只由租户的 site_setting 下发（后端 appendUploadInfo 追加），
+   * 一旦回退就会丢失 is_private / static_url，导致私有模式与云存储前缀失效。
    */
-  const applyToPreferences = async () => {
-    const config = getCurrentConfig();
-    if (!config.title && !config.logo) {
+  const getStorageConfig = (): SystemConfig =>
+    tenantIsLoaded.value ? tenantConfig.value : platformConfig.value;
+
+  /**
+   * 获取租户配置并同步到 preferences（logo/标题/favicon）
+   * 供 settings 保存后、登录后、切换租户后统一调用
+   *
+   * 内部已做异常保护，不会因租户配置获取失败而中断调用方流程
+   * （登录后参数校验、路由跳转等不应被站点配置请求阻塞）
+   */
+  const syncTenantPreferences = async () => {
+    try {
+      await fetchTenantConfig();
+    } catch {
+      console.warn('获取租户配置失败，使用平台配置作为回退');
+    }
+
+    // 站点名称：租户优先，未配置 site_name 时回退平台品牌名
+    const title = tenantConfig.value.title || platformConfig.value.title;
+
+    // Logo / favicon 及其存储字段取「已配置 logo 的一方」：
+    // 不能用 getCurrentConfig()——它要求租户配置存在 site_name，否则整体回退平台配置，
+    // 导致租户只配置了 Logo、未配置站点名称时，Logo 始终被平台 Logo 覆盖
+    const storage = tenantConfig.value.logo
+      ? tenantConfig.value
+      : platformConfig.value;
+
+    if (!title && !storage.logo) {
       return; // 无可用配置，跳过同步
     }
 
+    // 私有空间下 logo / favicon 不能在前端拼接，需先换取带签名的临时直链，
+    // 否则写入 preferences 的会是不可访问的地址
+    await prefetchSignedUrls([storage.logo, storage.favicon], storage);
+
+    const { updatePreferences } = await import('#/core/preferences');
     const updates: Record<string, any> = {};
-    if (config.title) updates.app = { name: config.title };
-    // 私有空间下 logo/favicon 需先向后台换取签名地址，再写入 preferences（一次性写入，无法后续重算）
-    await prefetchSignedUrls([config.logo, config.favicon]);
-    // logo 通过 buildStaticUrl 处理：同域使用相对路径，CDN 自动拼接域名，私有空间取签名地址
-    const logoUrl = buildStaticUrl(config.logo || '');
+    if (title) updates.app = { name: title };
+    // 必须用「提供该 logo 的配置」自身的存储字段拼地址：
+    // 多租户模式下回退到平台配置时，logo 在平台公开空间，用租户私有空间域名拼接会 401
+    const logoUrl = buildStaticUrl(
+      storage.logo || '',
+      storage.static_url,
+      true,
+      storage,
+    );
     updates.logo = {
       source: logoUrl || '/logo.png',
       sourceDark: logoUrl || '/logo.png',
     };
-    // 使用 setPreferences（直接覆盖已有字段），覆盖 env 写入的默认 app.name/logo.source
-    setPreferences(updates);
-    if (config.favicon) {
+    updatePreferences(updates);
+    if (storage.favicon) {
       const faviconLink =
         document.querySelector<HTMLLinkElement>('link[rel="icon"]');
       if (faviconLink) {
-        faviconLink.href = buildStaticUrl(config.favicon);
+        faviconLink.href = buildStaticUrl(
+          storage.favicon,
+          storage.static_url,
+          true,
+          storage,
+        );
       }
     }
-  };
-
-  /**
-   * 重新拉取站点配置并同步到 preferences（logo/标题/favicon）
-   * 供 settings 保存后、登录成功后调用
-   *
-   * 内部已做异常保护，不会因配置获取失败而中断调用方流程
-   */
-  const syncTenantPreferences = async () => {
-    try {
-      // 强制重新拉取，保证保存配置 / 登录后拿到最新内容
-      await fetchPlatformConfig(true);
-    } catch {
-      console.warn('获取站点配置失败，沿用已有配置');
-    }
-    await applyToPreferences();
   };
 
   return {
@@ -198,15 +267,17 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
     platformLoading,
     platformIsLoaded,
     platformError,
+    tenantConfig,
+    tenantLoading,
+    tenantIsLoaded,
+    tenantError,
     fetchPlatformConfig,
-    // 语义化别名：登录前后统一使用同一份站点配置
-    fetchSiteConfig: fetchPlatformConfig,
+    fetchTenantConfig,
+    clearTenantConfig,
     resetConfig,
     getCurrentConfig,
-    applyToPreferences,
+    getStorageConfig,
     syncTenantPreferences,
-    // 语义化别名：拉取最新站点配置并同步到 preferences
-    syncSitePreferences: syncTenantPreferences,
     $reset,
   };
 });

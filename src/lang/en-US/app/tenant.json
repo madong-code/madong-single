@@ -1,0 +1,37 @@
+{
+  "title": "App Management",
+  "market": "Plugin Market",
+  "develop": "Plugin Development",
+  "delegation": "Authorization",
+  "auth": "Tenant Auth",
+  "columns": {
+    "name": "Name",
+    "code": "Code",
+    "version": "Version",
+    "description": "Description",
+    "author": "Author",
+    "status": "Status",
+    "type": "Type"
+  },
+  "status": {
+    "installed": "Installed",
+    "uninstalled": "Not Installed",
+    "purchased": "Purchased",
+    "trial": "Trial",
+    "expired": "Expired",
+    "updatable": "Updatable"
+  },
+  "sse": {
+    "preparing": "Preparing...",
+    "installing": "Installing...",
+    "uninstalling": "Uninstalling..."
+  },
+  "isolation": {
+    "field": "Field Isolation",
+    "database": "Database Isolation",
+    "cleanupMenu": "Cleanup menu",
+    "cleanupRecord": "Delete tenant record",
+    "rollbackMigrate": "Rollback migrations",
+    "dropTables": "Drop business tables"
+  }
+}
