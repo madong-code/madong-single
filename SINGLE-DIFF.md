@@ -60,16 +60,25 @@ if (accessStore.tenantId &&
 
 ### 2.2 登录页：TenantSearcher 条件渲染
 
+**租户运行模式由 `VITE_GLOB_TENANT_MODE` 控制**（`.env` 不设定时默认 `auto`）：
+
+| 取值 | 行为 | 是否请求 `/auth/tenant-mode` |
+|---|---|---|
+| `auto`（默认） | 探测后端决定租户开关 | 是（404 静默失败 → 关闭） |
+| `standard` | 强制标准版，租户开关恒关 | **否**（省一次 404） |
+| `saas` | 强制多租户，租户开关恒开 | **否** |
+
+> 用 `VITE_GLOB_` 前缀：生产构建注入 `_app.config.js`，部署后可直接改该文件切换模式，无需重新构建。
+
 ```ts
+const { tenantMode } = useAppConfig(import.meta.env, import.meta.env.PROD);
 const tenantEnabled = ref(false);
 
 async function fetchTenantMode() {
-  try {
-    const modeData = await getTenantModeFlagApi();
-    tenantEnabled.value = modeData.enabled ?? false;
-  } catch {
-    // 单体后端大概率没这个接口 → 404 → catch → tenantEnabled 保持 false
-  }
+  if (tenantMode === 'standard') { tenantEnabled.value = false; return; } // 不请求
+  if (tenantMode === 'saas') { tenantEnabled.value = true; return; }       // 不请求
+  const modeData = await getTenantModeFlagApi(); // auto：404 静默失败 → 关闭
+  tenantEnabled.value = modeData.enabled ?? false;
 }
 
 if (tenantEnabled.value) {
@@ -211,7 +220,7 @@ store/modules/         业务 store（admin 特有）
 | `store/auth.ts` | switchTenant 方法存在但 tenantId=null 时永不被调用，零副作用 |
 | `core/stores/modules/access.ts` | tenantId 字段类型 `null \| int \| string`，默认 null，不影响单体 |
 | `layouts/basic.vue` | tenant-switch 是**硬 import**，必须删但删完组件本体才安全；条件逻辑本身保留 |
-| `.env` 配置 | 单体后端没开租户 → `tenantEnabled=false` → 全部条件分支自动跳过 |
+| `.env` 配置 | `VITE_GLOB_TENANT_MODE` 默认 auto：单体后端无 tenant-mode 接口 → 静默关闭；也可设 standard 强制跳过探测 → 全部条件分支自动跳过 |
 | package.json / pnpm-workspace.yaml | 依赖是框架级的（vue/pinia/element-plus），不区分单体/SaaS |
 
 ---

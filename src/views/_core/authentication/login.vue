@@ -7,6 +7,7 @@ import { AuthenticationLogin, SliderCaptcha, z } from '#/core/ui/common';
 import { $t } from '#/core/locales';
 
 import { getTenantModeFlagApi } from '#/api';
+import { useAppConfig } from '#/core/composables';
 import TenantSearcher from '#/components/tenant-searcher/index.vue';
 import { useAuthStore } from '#/store';
 
@@ -18,8 +19,21 @@ const authStore = useAuthStore();
 const tenantEnabled = ref(false);
 const tenantAutoFirst = ref(false);
 
+const { tenantMode } = useAppConfig(import.meta.env, import.meta.env.PROD);
+
 /** 获取租户模式状态 */
 async function fetchTenantMode() {
+  // 强制模式：直接决定开关，完全不请求 /auth/tenant-mode
+  if (tenantMode === 'standard') {
+    tenantEnabled.value = false;
+    return;
+  }
+  if (tenantMode === 'saas') {
+    tenantEnabled.value = true;
+    tenantAutoFirst.value = true;
+    return;
+  }
+  // auto（默认）：探测后端，标准后端 404 静默失败 → 保持关闭
   const modeData = await getTenantModeFlagApi();
   tenantEnabled.value = modeData.enabled ?? false;
   tenantAutoFirst.value = modeData.auto_select_first ?? false;
