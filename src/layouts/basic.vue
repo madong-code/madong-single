@@ -202,8 +202,8 @@ watch(
       </div>
       <MessageDrawer ref="messageDrawerRef" />
     </template>
-    <!-- 命令终端按钮（仅非租户模式 + 超级管理员显示） -->
-    <template #header-right-60>
+    <!-- 命令终端按钮（仅非租户模式 + 超级管理员显示，位于记事本之后、设置之前） -->
+    <template #header-right-102>
       <div
         v-if="showTerminalButton"
         class="hidden size-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-accent hover:shadow-md md:flex mr-1"
@@ -215,8 +215,8 @@ watch(
       <TerminalDialog />
     </template>
 
-    <!-- 记事本按钮（排在最后，移动端隐藏） -->
-    <template #header-right-100>
+    <!-- 记事本按钮（排在终端之前，移动端隐藏） -->
+    <template #header-right-101>
       <div
         class="hidden size-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-accent hover:shadow-md md:flex mr-1"
         title="记事本"
