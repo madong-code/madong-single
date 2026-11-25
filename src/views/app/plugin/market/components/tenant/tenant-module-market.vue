@@ -10,6 +10,10 @@ import TenantModuleTableHeader from './table-header.vue';
 
 defineOptions({ name: 'TenantModuleMarket' });
 
+const emit = defineEmits<{
+  viewModeChange: [mode: 'card' | 'table'];
+}>();
+
 // ── 状态管理 ────────────────────────────
 const searchKeyword = ref('');
 const activeTab = ref('all');
@@ -84,6 +88,7 @@ const handleTabChange = (tab: string) => {
 
 const handleViewChange = (mode: 'card' | 'table') => {
   currentViewMode.value = mode;
+  emit('viewModeChange', mode);
 };
 
 const handleRefresh = async () => {

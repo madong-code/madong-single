@@ -12,6 +12,10 @@ import StandaloneModuleMarket from './standalone/standalone-module-market.vue';
 
 defineOptions({ name: 'MarketRouter' });
 
+const emit = defineEmits<{
+  viewModeChange: [mode: 'card' | 'table'];
+}>();
+
 const mode = ref<string>('standalone');
 const loading = ref(true);
 
@@ -31,7 +35,15 @@ const isSaasMode = computed(() => mode.value === 'saas');
 
 <template>
   <div v-loading="loading" class="h-full flex flex-col">
-    <TenantModuleMarket v-if="isSaasMode" class="flex-1" />
-    <StandaloneModuleMarket v-else-if="!loading" class="flex-1" />
+    <TenantModuleMarket
+      v-if="isSaasMode"
+      class="flex-1"
+      @view-mode-change="emit('viewModeChange', $event)"
+    />
+    <StandaloneModuleMarket
+      v-else-if="!loading"
+      class="flex-1"
+      @view-mode-change="emit('viewModeChange', $event)"
+    />
   </div>
 </template>

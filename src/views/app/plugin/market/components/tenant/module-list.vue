@@ -323,6 +323,20 @@ const handleCurrentChange = (page: number) => {
           </div>
         </div>
       </div>
+
+      <!-- 分页 - 跟在卡片列表最后，随页面一起滚动 -->
+      <div v-if="total > 0" class="pagination-footer">
+        <ElPagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[12, 24, 48, 96]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </div>
 
     <!-- vxe-grid 表格视图模式 -->
@@ -419,20 +433,6 @@ const handleCurrentChange = (page: number) => {
         </div>
       </template>
     </VxeGrid>
-
-    <!-- 分页 - 卡片模式下常驻右下角 -->
-    <div v-if="viewMode === 'card' && total > 0" class="pagination-footer">
-      <ElPagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[12, 24, 48, 96]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
 
     <!-- 安装弹窗 -->
     <ModuleInstallDialog
@@ -647,9 +647,9 @@ html:not(.dark) .vxe-grid-wrapper :deep(.vxe-header--column) {
 /* ── 分页 ──────────────────────────────── */
 .pagination-footer {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
-  padding: 12px 0 0;
-  margin-top: auto;
+  padding: 12px 0 16px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 
