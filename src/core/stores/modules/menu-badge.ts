@@ -6,7 +6,7 @@ import { defineStore } from 'pinia';
  * 菜单徽标数据结构
  */
 export interface MenuBadgeData {
-  badge?: string | number;
+  badge?: number | string;
   badgeType?: 'dot' | 'normal';
   badgeVariants?: string;
 }
@@ -55,7 +55,7 @@ export const useMenuBadgeStore = defineStore('menu-badge', () => {
 
   /** 清除指定菜单徽标 */
   function clearBadge(path: string) {
-    delete badges.value[path];
+    Reflect.deleteProperty(badges.value, path);
   }
 
   /** 清除所有徽标 */
@@ -63,12 +63,17 @@ export const useMenuBadgeStore = defineStore('menu-badge', () => {
     badges.value = {};
   }
 
+  // 登出时 resetAllStores() 会遍历调用各 store 的 $reset()。
+  // setup 语法 store 未实现 $reset 时 Pinia 会直接抛错，导致后续清除 token 与跳转登录页不执行。
+  const $reset = clearAll;
+
   /** 获取某个路径的完整徽标数据 (包含父级计算) */
   function getBadgeForPath(path: string): MenuBadgeData | undefined {
     return badges.value[path] || parentBadges.value[path];
   }
 
   return {
+    $reset,
     badges,
     parentBadges,
     initBadges,
