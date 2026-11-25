@@ -136,6 +136,9 @@
             (config && (config.favicon || config.logo)) || '/favicon.ico';
         }
         if (!title) title = '%VITE_APP_TITLE%';
+        // 同步设置浏览器标签标题：缓存里是上次拉取到的动态站点名称，
+        // 避免首屏先显示 env 静态标题、等配置接口回来后再闪一下变成动态名称
+        document.title = title;
         document.currentScript.parentNode.textContent = title;
       })();
     </script>
