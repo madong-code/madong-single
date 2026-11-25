@@ -118,22 +118,23 @@
   <div class="loader"></div>
   <div class="title" id="__app-loading-title__">
     <!-- 内联脚本在浏览器首次绘制前执行，零闪动。
-         始终优先使用缓存配置，没有配置才回退到 %VITE_APP_TITLE% -->
+         __site_config__ 每次获取（含空响应/失败）都会被覆盖写入；
+         标题为空回退 %VITE_APP_TITLE%，图标为空时先用动态 Logo，再回退内置 /favicon.ico -->
     <script>
       (function () {
         var title;
+        var config = null;
         try {
           var cached = localStorage.getItem('__site_config__');
-          if (cached) {
-            var config = JSON.parse(cached);
-            if (config.title) title = config.title;
-            // favicon：优先使用配置的 favicon 地址
-            if (config.favicon) {
-              var faviconLink = document.getElementById('__app-favicon__');
-              if (faviconLink) faviconLink.href = config.favicon;
-            }
-          }
+          if (cached) config = JSON.parse(cached);
         } catch (e) {}
+        if (config && config.title) title = config.title;
+        var faviconLink = document.getElementById('__app-favicon__');
+        if (faviconLink) {
+          // 未配置 favicon 时沿用动态 Logo，两者都没有才用前端内置图标
+          faviconLink.href =
+            (config && (config.favicon || config.logo)) || '/favicon.ico';
+        }
         if (!title) title = '%VITE_APP_TITLE%';
         document.currentScript.parentNode.textContent = title;
       })();

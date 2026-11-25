@@ -5,6 +5,7 @@ import { defineStore } from 'pinia';
 
 import { getSiteInfoApi } from '#/api';
 import { ConfigService } from '#/api/system/config';
+import { getInitialPreferences, setPreferences } from '#/core/preferences';
 import { buildStaticUrl } from '#/utils/url';
 import { prefetchSignedUrls } from '#/utils/url/private-storage';
 
@@ -30,27 +31,57 @@ interface SystemConfig {
   [key: string]: any; // 保留后端原始字段
 }
 
+const DEFAULT_LOGO = '/logo.png';
+const DEFAULT_FAVICON = '/favicon.ico';
+
+/** 后端空配置可能是 null / [] / 非对象，统一归一化为普通对象 */
+function normalizeSource(source: unknown): Record<string, any> {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    return {};
+  }
+  return source as Record<string, any>;
+}
+
 /**
  * 站点配置映射函数
  * 将后端 snake_case 字段映射为前端 camelCase
  * 平台和租户共用同一个映射，只是数据源不同
  */
-function mapSiteConfig(source: Record<string, any>): SystemConfig {
+function mapSiteConfig(source: unknown): SystemConfig {
+  const config = normalizeSource(source);
   return {
-    logo: source?.site_logo || '',
-    title: source?.site_name || '',
-    favicon: source?.site_favicon || '',
-    copyright: source?.site_copyright || '',
-    site_open: source?.site_open,
-    site_url: source?.site_url,
-    site_description: source?.site_description,
-    site_record_no: source?.site_record_no,
-    site_icp_url: source?.site_icp_url,
-    site_network_security: source?.site_network_security,
-    site_network_security_url: source?.site_network_security_url,
+    logo: config.site_logo || '',
+    title: config.site_name || '',
+    favicon: config.site_favicon || '',
+    copyright: config.site_copyright || '',
+    site_open: config.site_open,
+    site_url: config.site_url,
+    site_description: config.site_description,
+    site_record_no: config.site_record_no,
+    site_icp_url: config.site_icp_url,
+    site_network_security: config.site_network_security,
+    site_network_security_url: config.site_network_security_url,
     // 保留其他所有字段（如 static_url, cdnUrl, cdnUrlParams 等）
-    ...source,
+    ...config,
   };
+}
+
+/**
+ * 从 __site_config__ 缓存恢复平台品牌。
+ * 已登录刷新时不会请求 /auth/site-info，缓存是唯一能拿到平台 Logo/favicon 的来源；
+ * 这里只恢复品牌字段，存储运行时字段（static_url/is_private 等）由后台请求校准。
+ */
+function readPlatformCache(): SystemConfig {
+  try {
+    const cached = JSON.parse(localStorage.getItem('__site_config__') || '{}');
+    return {
+      title: typeof cached?.title === 'string' ? cached.title : '',
+      logo: typeof cached?.logo === 'string' ? cached.logo : '',
+      favicon: typeof cached?.favicon === 'string' ? cached.favicon : '',
+    };
+  } catch {
+    return {};
+  }
 }
 
 /**
@@ -65,7 +96,8 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
 
   // ── 登录前：平台级配置 ──
   // 生命周期：bootstrap → 整个会话（退出不清空）
-  const platformConfig = ref<SystemConfig>({});
+  // 初始化即读缓存，避免刷新后因平台配置未请求而把动态品牌直接回退成静态资源
+  const platformConfig = ref<SystemConfig>(readPlatformCache());
   const platformLoading = ref(false);
   const platformIsLoaded = ref(false);
   const platformError = ref<null | string>(null);
@@ -80,9 +112,34 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
   // ==================== Actions ====================
 
   /**
+   * 写入 loading.html 使用的平台品牌缓存。
+   * 空配置也必须覆盖：写空字符串后 loading.html 会回退到 env 的标题与内置 favicon，
+   * 不再保留上一次（或另一个租户）留下的品牌值。
+   */
+  const writePlatformCache = (config: SystemConfig) => {
+    try {
+      const primaryColor =
+        config.primaryColor ||
+        config.site_primary_color ||
+        config.primary_color;
+      const cacheData: Record<string, any> = {
+        title: config.title || '',
+        logo: config.logo || '',
+        favicon: config.favicon || '',
+      };
+      if (primaryColor) {
+        cacheData.primaryColor = primaryColor;
+      }
+      localStorage.setItem('__site_config__', JSON.stringify(cacheData));
+    } catch {
+      // 忽略缓存写入失败
+    }
+  };
+
+  /**
    * 获取站点信息（登录前，不需要 Token）
    * GET /auth/site-info → 后端直接返回站点配置（SaaS 取平台分组，标准版取 default 分组）
-   * 两端接口同名，前端单次请求即可；silent 保证个别后端缺接口时不弹提示
+   * 空响应或请求失败都按空配置覆盖，避免残留旧品牌。
    */
   const fetchPlatformConfig = async () => {
     if (platformLoading.value) return;
@@ -91,67 +148,135 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
 
     try {
       const response = (await getSiteInfoApi()) as any;
-      platformConfig.value = mapSiteConfig(response as any);
-      platformIsLoaded.value = true;
-
-      // 缓存到 localStorage，供 loading.html 在下次启动时读取
-      // 有配置值才缓存，无则不存（loading.html 读取不到就不会设置，保留硬编码 fallback）
-      try {
-        const primaryColor =
-          platformConfig.value.primaryColor ||
-          platformConfig.value.site_primary_color ||
-          platformConfig.value.primary_color;
-        const cacheData: Record<string, any> = {
-          title: platformConfig.value.title,
-          logo: platformConfig.value.logo,
-          favicon: platformConfig.value.favicon,
-        };
-        if (primaryColor) {
-          cacheData.primaryColor = primaryColor;
-        }
-        localStorage.setItem('__site_config__', JSON.stringify(cacheData));
-      } catch {
-        // 忽略缓存写入失败
-      }
+      platformConfig.value = mapSiteConfig(response);
     } catch (error: any) {
-      platformError.value = error.message || '获取站点信息失败';
-      console.warn('获取平台配置失败（不影响登录）:', error);
+      platformConfig.value = mapSiteConfig({});
+      platformError.value = error?.message || '获取站点信息失败';
+      console.warn('获取平台配置失败，按空配置处理（不影响登录）:', error);
     } finally {
+      platformIsLoaded.value = true;
+      writePlatformCache(platformConfig.value);
       platformLoading.value = false;
+      // 登录页品牌（含浏览器标签图标）也走同一套 env 兜底逻辑
+      void applyBrandPreferences().catch((error) => {
+        console.warn('应用平台品牌配置失败:', error);
+      });
     }
   };
+
+  // 租户切换时可能有多个请求在飞，仅最后一次（序号最大）允许写入状态
+  let tenantFetchSeq = 0;
 
   /**
    * 获取租户级配置（登录后，带 X-Tenant-Id）
    * GET /system/config/code/site_setting → 使用独立 code 'site_setting'
-   * 结果写入 tenantConfig，使用 mapSiteConfig 转换格式
+   * 空响应或请求失败都按空配置覆盖；不写 __site_config__，避免污染登录页/loading 品牌
    */
   const fetchTenantConfig = async (code = 'site_setting') => {
-    if (tenantLoading.value) return;
+    const seq = ++tenantFetchSeq;
     tenantLoading.value = true;
     tenantError.value = null;
 
     try {
       const response = (await ConfigService.getByCode(code)) as any;
-      tenantConfig.value = mapSiteConfig(response as any);
-      tenantIsLoaded.value = true;
+      if (seq !== tenantFetchSeq) return;
+      tenantConfig.value = mapSiteConfig(response);
     } catch (error: any) {
-      tenantError.value = error.message || '获取系统配置失败';
-      console.error('获取租户配置失败:', error);
+      if (seq !== tenantFetchSeq) return;
+      tenantConfig.value = mapSiteConfig({});
+      tenantError.value = error?.message || '获取系统配置失败';
+      console.warn('获取租户配置失败，按空配置处理:', error);
     } finally {
-      tenantLoading.value = false;
+      if (seq === tenantFetchSeq) {
+        tenantIsLoaded.value = true;
+        tenantLoading.value = false;
+      }
     }
   };
 
   /**
+   * 按「租户 → 平台 → 前端 env 默认」解析品牌并强制写入偏好设置与 DOM。
+   *
+   * 配置为空时 tenantConfig / platformConfig 都是空对象，因此必然回退到
+   * VITE_APP_TITLE / 默认 Logo / /favicon.ico，不会保留上一个租户的品牌。
+   */
+  const applyBrandPreferences = async () => {
+    const initial = getInitialPreferences();
+    const defaultTitle = initial.app?.name || '';
+    const defaultLogo = initial.logo?.source || DEFAULT_LOGO;
+    const defaultLogoDark = initial.logo?.sourceDark || defaultLogo;
+
+    const tenant = tenantConfig.value;
+    const platform = platformConfig.value;
+    const title = tenant.title || platform.title || defaultTitle;
+
+    // Logo 与 favicon 可能来自不同层级，签名预取必须用提供该值的配置本身
+    const logoProvider = tenant.logo ? tenant : platform.logo ? platform : null;
+    const faviconProvider = tenant.favicon
+      ? tenant
+      : platform.favicon
+        ? platform
+        : null;
+
+    try {
+      if (logoProvider) {
+        await prefetchSignedUrls([logoProvider.logo], logoProvider);
+      }
+      if (faviconProvider && faviconProvider !== logoProvider) {
+        await prefetchSignedUrls([faviconProvider.favicon], faviconProvider);
+      }
+    } catch (error) {
+      console.warn('换取品牌资源签名地址失败，回退普通地址:', error);
+    }
+
+    const logoUrl = logoProvider?.logo
+      ? buildStaticUrl(
+          logoProvider.logo,
+          logoProvider.static_url,
+          true,
+          logoProvider,
+        )
+      : defaultLogo;
+    // 未单独配置 favicon 时沿用动态 Logo：侧边栏与浏览器标签图标保持一致；
+    // 连 Logo 也没有动态值才回退到前端内置的 /favicon.ico
+    const faviconUrl = faviconProvider?.favicon
+      ? buildStaticUrl(
+          faviconProvider.favicon,
+          faviconProvider.static_url,
+          true,
+          faviconProvider,
+        )
+      : logoProvider?.logo
+        ? logoUrl
+        : DEFAULT_FAVICON;
+
+    // updatePreferences 用 defu 合并，缓存里的旧租户值会盖掉新值；必须强制覆盖
+    setPreferences({
+      app: { name: title },
+      logo: {
+        source: logoUrl,
+        sourceDark: logoProvider?.logo ? logoUrl : defaultLogoDark,
+      },
+    });
+
+    document.title = title;
+    const faviconLink =
+      document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (faviconLink) faviconLink.href = faviconUrl;
+  };
+
+  /**
    * 清空租户配置（退出登录时调用）
-   * 不影响 platformConfig（登录页复用平台品牌）
+   * 不影响 platformConfig（登录页复用平台品牌），但品牌显示要立即回退
    */
   const clearTenantConfig = () => {
     tenantConfig.value = {};
     tenantLoading.value = false;
     tenantError.value = null;
     tenantIsLoaded.value = false;
+    void applyBrandPreferences().catch((error) => {
+      console.warn('恢复默认品牌失败:', error);
+    });
   };
 
   /**
@@ -170,6 +295,9 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
     } catch {
       // 忽略清理失败
     }
+    void applyBrandPreferences().catch((error) => {
+      console.warn('恢复默认品牌失败:', error);
+    });
   };
 
   // resetAllStores() 依赖 $reset()，setup 语法 store 需要手动实现
@@ -214,51 +342,11 @@ export const useSiteConfigStore = defineStore('siteConfig', () => {
       console.warn('获取租户配置失败，使用平台配置作为回退');
     }
 
-    // 站点名称：租户优先，未配置 site_name 时回退平台品牌名
-    const title = tenantConfig.value.title || platformConfig.value.title;
-
-    // Logo / favicon 及其存储字段取「已配置 logo 的一方」：
-    // 不能用 getCurrentConfig()——它要求租户配置存在 site_name，否则整体回退平台配置，
-    // 导致租户只配置了 Logo、未配置站点名称时，Logo 始终被平台 Logo 覆盖
-    const storage = tenantConfig.value.logo
-      ? tenantConfig.value
-      : platformConfig.value;
-
-    if (!title && !storage.logo) {
-      return; // 无可用配置，跳过同步
-    }
-
-    // 私有空间下 logo / favicon 不能在前端拼接，需先换取带签名的临时直链，
-    // 否则写入 preferences 的会是不可访问的地址
-    await prefetchSignedUrls([storage.logo, storage.favicon], storage);
-
-    const { updatePreferences } = await import('#/core/preferences');
-    const updates: Record<string, any> = {};
-    if (title) updates.app = { name: title };
-    // 必须用「提供该 logo 的配置」自身的存储字段拼地址：
-    // 多租户模式下回退到平台配置时，logo 在平台公开空间，用租户私有空间域名拼接会 401
-    const logoUrl = buildStaticUrl(
-      storage.logo || '',
-      storage.static_url,
-      true,
-      storage,
-    );
-    updates.logo = {
-      source: logoUrl || '/logo.png',
-      sourceDark: logoUrl || '/logo.png',
-    };
-    updatePreferences(updates);
-    if (storage.favicon) {
-      const faviconLink =
-        document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-      if (faviconLink) {
-        faviconLink.href = buildStaticUrl(
-          storage.favicon,
-          storage.static_url,
-          true,
-          storage,
-        );
-      }
+    try {
+      // 即使配置为空也要应用一次：旧租户的品牌必须被 env 兜底值覆盖
+      await applyBrandPreferences();
+    } catch (error) {
+      console.warn('应用站点品牌配置失败:', error);
     }
   };
 

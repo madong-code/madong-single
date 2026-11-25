@@ -1,21 +1,22 @@
 import { createApp, watchEffect } from 'vue';
 
-import { registerAccessDirective } from '#/core/access';
-import { registerLoadingDirective } from '#/core/ui/common';
-import { preferences } from '#/core/preferences';
-import { initStores, useAccessStore, useTimezoneStore } from '#/core/stores';
-import '#/core/design/styles';
-import '#/core/design/styles/ele/index.css';
-
 import { useTitle } from '@vueuse/core';
 import { ElLoading } from 'element-plus';
 
+import { registerAccessDirective } from '#/core/access';
+import { preferences } from '#/core/preferences';
+import { initStores, useAccessStore, useTimezoneStore } from '#/core/stores';
+import { registerLoadingDirective } from '#/core/ui/common';
 import { $t, setupI18n } from '#/locales';
 
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
 import App from './app.vue';
 import { router } from './router';
+
+import '#/core/design/styles';
+
+import '#/core/design/styles/ele/index.css';
 
 (async () => {
   // 加载离线图标
@@ -74,9 +75,11 @@ async function bootstrap(namespace: string) {
   const siteConfigStore = useSiteConfigStore();
 
   if (accessStore.accessToken) {
-    // 已登录：当前已是租户上下文，只取租户配置（/system/config/code/site_setting），
-    // 不再请求登录前的平台站点信息 /auth/site-info
-    // 非阻塞同步，解决刷新页面后左侧 Logo/标题被 preferences 默认值覆盖的问题
+    // 已登录：以租户配置为准，同时后台校准平台配置。
+    // store 初始化已从 __site_config__ 恢复平台品牌，刷新后不会先把动态 Logo/favicon
+    // 回退成前端静态资源；平台请求只用于补齐存储运行时字段，非阻塞。
+    siteConfigStore.fetchPlatformConfig();
+    // 非阻塞同步租户品牌，解决刷新页面后左侧 Logo/标题被 preferences 默认值覆盖的问题
     siteConfigStore.syncTenantPreferences();
   } else {
     // 未登录：预加载平台站点配置（阻塞，确保登录页品牌信息就绪）

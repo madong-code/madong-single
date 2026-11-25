@@ -5,6 +5,7 @@ import { preferencesManager } from './preferences';
 export const {
   getPreferences,
   getCustomPreferences,
+  getInitialPreferences,
   getInitialCustomPreferences,
   getPreferencesExtension,
   updatePreferences,
