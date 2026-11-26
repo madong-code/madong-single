@@ -2,6 +2,7 @@
 import type { ZodType } from 'zod';
 
 import type {
+  CustomRenderType,
   FormActions,
   FormFieldProps,
   MaybeComponentProps,
@@ -192,16 +193,19 @@ const computedProps = computed(() => {
 });
 
 // 自定义帮助信息
-const computedHelp = computed(() => {
-  const helpContent = help;
-  if (!helpContent) {
-    return undefined;
-  }
-  return () =>
-    isFunction(helpContent)
-      ? helpContent(values.value, getFormApi())
-      : helpContent;
-});
+const computedHelp = computed(
+  () =>
+    (() => {
+      const helpContent = help;
+      if (!helpContent) {
+        return undefined;
+      }
+      if (isFunction(helpContent)) {
+        return helpContent(values.value, getFormApi());
+      }
+      return helpContent;
+    })() as CustomRenderType | undefined,
+);
 
 watch(
   () => computedProps.value?.autofocus,
